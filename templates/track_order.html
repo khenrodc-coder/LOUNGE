@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" class="transition duration-300">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Track Order - Laundry Lounge</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+<script> tailwind.config = { darkMode: 'class' } </script>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+body { font-family:'DM Sans',sans-serif; overflow-x:hidden; background:#111827; color:white; }
+h1,h2,h3{ font-family:'Poppins',sans-serif; }
+
+/* Glass Effect */
+.glass{
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius:20px;
+    padding:2rem;
+    transition: box-shadow 0.3s, transform 0.3s;
+}
+.glass:hover{
+    box-shadow: 0 0 20px rgba(255,255,255,0.5);
+    transform: translateY(-3px);
+}
+.dark .glass{
+    background: rgba(30,41,59,0.35);
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* Bubble Background */
+.bubbles{
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    z-index: 0;
+    pointer-events: none;
+}
+.bubble{
+    position: absolute;
+    bottom: -150px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(255,255,255,0.4) 40%, rgba(255,255,255,0.2) 60%, transparent 70%);
+    animation: floatUp linear infinite;
+    opacity: 0.6;
+    backdrop-filter: blur(4px);
+}
+@keyframes floatUp{
+    0%{ transform: translateY(0) scale(1); opacity: 0; }
+    10%{ opacity: 0.6; }
+    90%{ opacity: 0.6; }
+    100%{ transform: translateY(-120vh) scale(1.2); opacity: 0; }
+}
+
+/* Decorative Lines & Circles */
+.decorative-line {
+    position: absolute;
+    width: 2px;
+    height: 150px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.5), transparent);
+    transform: rotate(25deg);
+    opacity: 0.3;
+    z-index: 0;
+    pointer-events: none;
+}
+.decorative-line.reverse { transform: rotate(-25deg); }
+.decorative-circle {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    box-shadow: 0 0 20px rgba(255,255,255,0.2);
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Table */
+table { width:100%; border-collapse: separate; border-spacing:0 8px; }
+thead tr th { text-align:left; padding:0.75rem 1rem; font-weight:600; font-size:1rem; color:#d1d5db; }
+tbody tr { background: rgba(255,255,255,0.05); border-radius:12px; transition: transform 0.2s, box-shadow 0.2s; }
+tbody tr:hover { transform: translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.5);}
+td { padding:0.75rem 1rem; font-size:0.95rem; color:white; }
+.status-badge { display:inline-block; padding:0.25rem 0.75rem; border-radius:9999px; font-weight:600; font-size:0.85rem; color:white; }
+.status-in-progress { background:#10b981; }
+.status-completed { background:#3b82f6; }
+.status-pending { background:#f59e0b; }
+
+/* Header */
+header { text-align:center; margin-bottom:2rem; }
+header h1 { font-size:3rem; font-weight:700; margin:0; }
+header p { font-size:1.2rem; color:#fcd34d; margin-top:0.5rem; font-style:italic; }
+
+/* Footer */
+footer { text-align:center; padding:2rem 1rem; font-size:0.9rem; color:#9ca3af; margin-top:auto; background:rgba(0,0,0,0.2); backdrop-filter: blur(10px); border-top:1px solid rgba(255,255,255,0.1);}
+</style>
+</head>
+<body class="min-h-screen flex flex-col bg-gradient-to-br from-gray-900 via-gray-800 to-black transition duration-500">
+  <!-- Bubble Background -->
+  <div class="bubbles" id="bubbles"></div>
+
+  <header>
+      <h1>Laundry Lounge</h1>
+      <p>From Stains to Sparkle</p>
+  </header>
+
+  <!-- MAIN CONTENT: make it flex-grow -->
+  <main class="flex-grow relative z-10 mx-auto max-w-4xl p-4">
+      <section class="glass">
+          <h2 class="text-2xl font-bold mb-4 text-center">Track Your Order</h2>
+
+          <!-- Decorative Lines & Circles -->
+          <div class="decorative-line" style="top:50px; left:20%;"></div>
+          <div class="decorative-line reverse" style="top:200px; left:65%;"></div>
+          <div class="decorative-circle" style="top:150px; left:10%;"></div>
+          <div class="decorative-circle" style="top:300px; left:75%; width:150px; height:150px;"></div>
+
+          <div class="overflow-x-auto">
+              <table>
+                  <thead>
+                      <tr>
+                          <th>Order ID</th>
+                          <th>Customer</th>
+                          <th>Service</th>
+                          <th>Weight</th>
+                          <th>Pickup Date</th>
+                          <th>Amount</th>
+                          <th>Status</th>
+                      </tr>
+                  </thead>
+                  <tbody id="orderTable"></tbody>
+              </table>
+          </div>
+      </section>
+  </main>
+
+  <footer>
+    <p><strong>Location:</strong> Maharlika Highway Cojuangco, Santa Rosa Nueva Ecija</p>
+    <p><strong>Contact:</strong> +63 9399411125</p>
+    <p><strong>Services:</strong> Wash & Fold, Dry Cleaning, Express Service</p>
+  </footer>
+</body>
+</html>

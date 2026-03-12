@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en" class="transition duration-300">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LOUNGE Premium Dashboard</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config = { darkMode: 'class' }</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+body{ font-family:'DM Sans',sans-serif; overflow-x:hidden; }
+h1,h2,h3{ font-family:'Poppins',sans-serif; }
+.glass{ background: rgba(255,255,255,0.25); backdrop-filter: blur(18px); border: 1px solid rgba(255,255,255,0.3); transition: box-shadow 0.3s, transform 0.3s;}
+.glass:hover{ box-shadow: 0 0 20px rgba(255,255,255,0.5); transform: translateY(-3px);}
+.dark .glass{ background: rgba(30,41,59,0.35); border: 1px solid rgba(255,255,255,0.08);}
+.bubbles{position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none;}
+.bubble{position: absolute; bottom: -150px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(255,255,255,0.4) 40%, rgba(255,255,255,0.2) 60%, transparent 70%); animation: floatUp linear infinite; opacity: 0.6; backdrop-filter: blur(4px);}
+@keyframes floatUp{0%{transform: translateY(0) scale(1); opacity:0;} 10%{opacity:0.6;} 90%{opacity:0.6;} 100%{transform: translateY(-120vh) scale(1.2); opacity:0;}}
+.decorative-line{position:absolute;width:2px;height:150px;background:linear-gradient(to bottom, rgba(255,255,255,0.5), transparent); transform:rotate(25deg); opacity:0.3; z-index:0; pointer-events:none;}
+.decorative-line.reverse{transform:rotate(-25deg);}
+.decorative-circle{position:absolute;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.1); box-shadow:0 0 20px rgba(255,255,255,0.2); z-index:0; pointer-events:none;}
+</style>
+</head>
+
+<body class="min-h-screen bg-gradient-to-br from-green-400 via-blue-500 to-indigo-600 dark:from-gray-900 dark:via-gray-800 dark:to-black transition duration-500">
+
+<div class="bubbles" id="bubbles"></div>
+
+<aside id="sidebar" class="fixed top-0 left-0 h-full w-64 glass p-6 text-white z-40 transform -translate-x-full transition-transform duration-300 flex flex-col justify-between">
+  <div>
+    <div class="flex items-center justify-between mb-10">
+      <h1 class="text-2xl font-bold">LOUNGE</h1>
+      <button id="closeSidebar" class="p-2 rounded-lg hover:bg-white/20 transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    <nav class="space-y-3">
+      <a href="{{ url_for('dashboard') }}" class="block px-4 py-3 rounded-xl hover:bg-white/20 transition">Dashboard</a>
+      <a href="{{ url_for('orders') }}" class="block px-4 py-3 rounded-xl hover:bg-white/20 transition">Orders</a>
+      <a href="{{ url_for('customers') }}" class="block px-4 py-3 rounded-xl hover:bg-white/20 transition">Customers</a>
+      <a href="{{ url_for('reports') }}" class="block px-4 py-3 rounded-xl hover:bg-white/20 transition">Reports</a>
+      <a href="{{ url_for('settings') }}" class="block px-4 py-3 rounded-xl hover:bg-white/20 transition">Settings</a>
+    </nav>
+  </div>
+  <div class="mt-10 flex flex-col gap-2">
+    <p class="text-sm opacity-80">{{ user }}</p>
+    <p class="text-xs opacity-60">admin@laundry.com</p>
+    <a href="{{ url_for('logout') }}" class="mt-3 block px-4 py-2 rounded-xl bg-red-500 hover:bg-red-400 text-white text-sm text-center transition">Log Out</a>
+  </div>
+</aside>
+
+<div id="overlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-30"></div>
+
+<div class="relative z-10 p-4 sm:p-6 md:p-8 text-white transition-all duration-300">
+
+<div class="flex justify-between items-center mb-8">
+<button id="openSidebar" class="p-3 rounded-xl bg-white/20 hover:bg-white/30 transition">☰</button>
+<button onclick="toggleDark()" class="px-5 py-2 rounded-full bg-white/20 hover:bg-white/30 transition">🌙</button>
+</div>
+
+<div class="mb-8">
+<h2 class="text-3xl font-bold">Dashboard Overview</h2>
+<p class="text-white/70 text-sm mt-2">Welcome back! Here's what's happening today.</p>
+</div>
+
+<!-- Dashboard Stats -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+<div class="glass p-6 rounded-2xl">
+<p class="text-sm opacity-80">Total Revenue</p>
+<h3 id="totalRevenue" class="text-2xl font-bold mt-2">₱0</h3>
+<p class="text-green-300 text-sm mt-1">+0%</p>
+</div>
+<div class="glass p-6 rounded-2xl">
+<p class="text-sm opacity-80">Active Orders</p>
+<h3 id="activeOrders" class="text-2xl font-bold mt-2">0</h3>
+<p class="text-green-300 text-sm mt-1">+0%</p>
+</div>
+<div class="glass p-6 rounded-2xl">
+<p class="text-sm opacity-80">Total Customers</p>
+<h3 id="totalCustomers" class="text-2xl font-bold mt-2">0</h3>
+<p class="text-green-300 text-sm mt-1">+0%</p>
+</div>
+<div class="glass p-6 rounded-2xl">
+<p class="text-sm opacity-80">Pending Orders</p>
+<h3 id="pendingOrders" class="text-2xl font-bold mt-2">0</h3>
+<p class="text-red-300 text-sm mt-1">-0%</p>
+</div>
+</div>
+
+<!-- Charts -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<div class="glass p-6 rounded-2xl">
+<h3 class="mb-4 font-semibold">Revenue Overview</h3>
+<canvas id="revenueChart"></canvas>
+</div>
+<div class="glass p-6 rounded-2xl">
+<h3 class="mb-4 font-semibold">Order Statistics</h3>
+<canvas id="ordersChart"></canvas>
+</div>
+</div>
+</div>
+
+<script>
+// ------------------ Sidebar ------------------
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('overlay');
+document.getElementById('openSidebar').onclick = () => {
+    sidebar.classList.remove('-translate-x-full'); 
+    overlay.classList.remove('hidden');
+};
+document.getElementById('closeSidebar').onclick = () => {
+    sidebar.classList.add('-translate-x-full'); 
+    overlay.classList.add('hidden');
+};
+overlay.onclick = () => {
+    sidebar.classList.add('-translate-x-full'); 
+    overlay.classList.add('hidden');
+};
+
+// ------------------ Dark Mode ------------------
+function toggleDark() {
+    document.documentElement.classList.toggle('dark'); 
+    localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+}
+if(localStorage.getItem('theme') === 'dark') {
+    document.documentElement.classList.add('dark');
+}
+
+// ------------------ Bubble Generator ------------------
+function createBubbles(count=30){
+    const container = document.getElementById('bubbles');
+    for(let i=0;i<count;i++){
+        const bubble = document.createElement('div');
+        bubble.classList.add('bubble');
+        bubble.style.width = bubble.style.height = `${Math.random()*80 + 20}px`;
+        bubble.style.left = `${Math.random()*100}%`;
+        bubble.style.animationDuration = `${Math.random()*10 + 5}s`;
+        bubble.style.animationDelay = `${Math.random()*5}s`;
+        container.appendChild(bubble);
+    }
+}
+createBubbles();
+
+async function fetchDashboardData() {
+    try {
+        const response = await fetch("/api/orders"); // GET /api/orders from Flask
+        if (!response.ok) throw new Error("Failed to fetch orders");
+        const orders = await response.json();
+
+        // Calculate stats
+        const totalRevenue = orders.reduce((sum, o) => sum + parseFloat(o.amount || 0), 0);
+        const activeOrders = orders.filter(o => o.status !== 'Completed').length;
+        const pendingOrders = orders.filter(o => ["New","Washing","Drying","Folding"].includes(o.status)).length;
+        const totalCustomers = [...new Set(orders.map(o => o.name))].length;
+
+        // Update DOM
+        document.getElementById('totalRevenue').innerText = `₱${totalRevenue.toFixed(2)}`;
+        document.getElementById('activeOrders').innerText = activeOrders;
+        document.getElementById('pendingOrders').innerText = pendingOrders;
+        document.getElementById('totalCustomers').innerText = totalCustomers;
+
+        // Update charts
+        fetchReportData(orders);
+
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+// ------------------ Charts ------------------
+let revenueChart, ordersChart;
+function fetchReportData(orders) {
+    const labels = [...new Set(orders.map(o => o.order_date))].sort(); // use real DB date field
+    const revenueData = labels.map(date => 
+        orders.filter(o => o.order_date === date).reduce((sum, o) => sum + parseFloat(o.amount || 0), 0)
+    );
+    const ordersData = labels.map(date => orders.filter(o => o.order_date === date).length);
+
+    const ctxRevenue = document.getElementById('revenueChart').getContext('2d');
+    const ctxOrders = document.getElementById('ordersChart').getContext('2d');
+
+    if(revenueChart) revenueChart.destroy();
+    if(ordersChart) ordersChart.destroy();
+
+    revenueChart = new Chart(ctxRevenue, {
+        type:'line',
+        data:{ labels, datasets:[{data: revenueData, borderColor:'#fff', backgroundColor:'rgba(255,255,255,0.2)', fill:true, tension:0.4}]},
+        options:{plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#fff'}}, y:{ticks:{color:'#fff'}}}}
+    });
+
+    ordersChart = new Chart(ctxOrders, {
+        type:'bar',
+        data:{ labels, datasets:[{data: ordersData, backgroundColor:'rgba(255,255,255,0.6)'}]},
+        options:{plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#fff'}}, y:{ticks:{color:'#fff'}}}}
+    });
+}
+
+// ------------------ Initialize ------------------
+fetchDashboardData();
+setInterval(fetchDashboardData, 30000);
+// ------------------ Auto-refresh every 30 seconds ------------------
+setInterval(() => {
+    fetchDashboardData();
+    fetchReportData();
+}, 30000);
+
+// ------------------ Cross-tab Updates ------------------
+window.addEventListener('storage', (event) => {
+    if(event.key === 'orders') {
+        fetchDashboardData();
+        fetchReportData();
+    }
+});
+</script>
+</body>
+</html>

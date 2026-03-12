@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laundry Lounge Premium</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+  font-family: 'Playfair Display', serif;
+
+  background:
+    url('/static/img/character.jpg') no-repeat center center / cover,
+    linear-gradient(-45deg,#7a003c,#6a0d83,#2e1f92,#9d174d);
+
+  background-size: cover, 400% 400%;
+  animation: gradientMove 12s ease infinite;
+}
+
+/* Gradient Animation */
+@keyframes gradientMove{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+
+/* Fade in */
+.fade-in{
+  animation: fadeIn 2s ease forwards;
+  opacity:0;
+}
+
+@keyframes fadeIn{
+  to{opacity:1;}
+}
+
+/* Gradient Text */
+.gradient-text{
+  background: linear-gradient(90deg,#ffffff,#f9a8d4,#c084fc,#ffffff);
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: textShine 5s linear infinite;
+}
+
+@keyframes textShine{
+  to{background-position:200% center;}
+}
+
+/* Glow */
+.glow{
+  text-shadow:
+    0 0 10px rgba(255,255,255,0.6),
+    0 0 20px rgba(255,182,255,0.6),
+    0 0 40px rgba(255,105,180,0.6);
+}
+
+/* Rotating Ring */
+.glow-ring{
+  position:absolute;
+  width:600px;
+  height:600px;
+  border-radius:50%;
+  border:40px solid rgba(255,255,255,0.18);
+  box-shadow:
+    0 0 60px rgba(255,105,180,0.6),
+    0 0 120px rgba(255,182,255,0.5);
+  animation: rotateRing 25s linear infinite, pulseRing 4s ease-in-out infinite;
+}
+
+@keyframes rotateRing{
+  from{ transform: rotate(0deg);}
+  to{ transform: rotate(360deg);}
+}
+
+@keyframes pulseRing{
+  0%,100%{
+    box-shadow:
+      0 0 60px rgba(255,105,180,0.6),
+      0 0 120px rgba(255,182,255,0.5);
+  }
+  50%{
+    box-shadow:
+      0 0 100px rgba(255,105,180,0.9),
+      0 0 200px rgba(255,182,255,0.8);
+  }
+}
+
+/* Floating Login Button */
+.glass-btn{
+  position:relative;
+  overflow:hidden;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.3);
+  transition: 0.3s ease;
+  animation: floatBtn 4s ease-in-out infinite;
+}
+
+@keyframes floatBtn{
+  0%,100%{ transform: translateY(0);}
+  50%{ transform: translateY(-10px);}
+}
+
+/* Ripple */
+.glass-btn::after{
+  content:'';
+  position:absolute;
+  width:0;
+  height:0;
+  background: rgba(255,255,255,0.4);
+  border-radius:50%;
+  transform: translate(-50%,-50%);
+  top:50%;
+  left:50%;
+  opacity:0;
+  transition: width 0.6s ease, height 0.6s ease, opacity 1s;
+}
+
+.glass-btn:hover::after{
+  width:300px;
+  height:300px;
+}
+
+/* Floating bubbles */
+.bubble{
+  position:absolute;
+  bottom:-100px;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(255,255,255,0.2));
+  border-radius:9999px;
+  animation: rise linear infinite;
+  opacity:0.6;
+}
+
+@keyframes rise{
+  from{ transform: translateY(0) scale(1); opacity:0.6;}
+  to{ transform: translateY(-110vh) scale(1.3); opacity:0;}
+}
+
+/* Waves */
+.wave{
+  position:absolute;
+  bottom:0;
+  width:200%;
+  height:200px;
+  background: rgba(255,255,255,0.05);
+  border-radius:40%;
+  animation: waveMove 8s linear infinite;
+}
+
+.wave:nth-child(2){
+  bottom:20px;
+  opacity:0.5;
+  animation-duration:12s;
+}
+
+@keyframes waveMove{
+  from{ transform: translateX(0);}
+  to{ transform: translateX(-50%);}
+}
+
+/* Login Modal */
+.login-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.6);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  visibility:hidden;
+  opacity:0;
+  transition:0.3s ease;
+}
+
+.login-modal.active{
+  visibility:visible;
+  opacity:1;
+}
+
+.login-box{
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255,255,255,0.3);
+  padding:40px;
+  border-radius:20px;
+  width:350px;
+  box-shadow:0 0 40px rgba(255,105,180,0.6);
+  transform:scale(0.8);
+  transition:0.3s ease;
+}
+
+.login-modal.active .login-box{
+  transform:scale(1);
+}
+
+</style>
+</head>
+
+<body class="text-white flex flex-col min-h-screen relative">
+
+<section class="flex flex-1 items-center justify-center relative text-center fade-in">
+
+<div class="relative flex items-center justify-center w-[600px] h-[600px]">
+
+<div class="glow-ring absolute"></div>
+
+<div class="relative z-20 flex flex-col items-center">
+
+<p class="italic text-2xl text-pink-200 mb-4 tracking-wide">
+From Stains to Sparkle
+</p>
+
+<h1 class="text-[85px] leading-[0.9] font-semibold tracking-wide gradient-text glow">
+Laundry <br> Lounge
+</h1>
+
+<button onclick="openLogin()" class="glass-btn mt-8 px-10 py-4 rounded-full text-xl font-semibold shadow-xl">
+Login
+</button>
+
+</div>
+</div>
+</section>
+
+<!-- Floating bubbles -->
+<div class="bubble w-6 h-6 left-[20%]" style="animation-duration:10s;"></div>
+<div class="bubble w-10 h-10 left-[40%]" style="animation-duration:14s;"></div>
+<div class="bubble w-8 h-8 left-[60%]" style="animation-duration:12s;"></div>
+<div class="bubble w-4 h-4 left-[75%]" style="animation-duration:9s;"></div>
+<div class="bubble w-12 h-12 left-[85%]" style="animation-duration:16s;"></div>
+
+<!-- Waves -->
+<div class="wave"></div>
+<div class="wave"></div>
+
+<!-- LOGIN MODAL -->
+<div id="loginModal" class="login-modal">
+
+<div class="login-box text-center">
+
+<h2 class="text-3xl mb-6 font-semibold">Login</h2>
+
+<!-- Flask Flash Messages -->
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<p class="text-red-300 mb-4">{{ messages[0] }}</p>
+{% endif %}
+{% endwith %}
+
+<form action="/login" method="POST">
+
+<input type="text" name="username" placeholder="Username"
+class="w-full mb-4 px-4 py-3 rounded-lg bg-white/20 placeholder-white focus:outline-none focus:ring-2 focus:ring-pink-400">
+
+<input type="password" name="password" placeholder="Password"
+class="w-full mb-6 px-4 py-3 rounded-lg bg-white/20 placeholder-white focus:outline-none focus:ring-2 focus:ring-pink-400">
+
+<button type="submit"
+class="w-full glass-btn py-3 rounded-lg font-semibold text-lg">
+Sign In
+</button>
+
+</form>
+
+<button onclick="closeLogin()" class="mt-4 text-sm text-pink-200 hover:underline">
+Cancel
+</button>
+
+</div>
+</div>
+
+<footer class="absolute bottom-0 w-full text-center py-5 bg-gradient-to-r from-purple-900 to-pink-700 tracking-wide">
+Maharlika Highway Cojuangco, Santa Rosa Nueva Ecija
+</footer>
+
+<script>
+
+function openLogin(){
+document.getElementById("loginModal").classList.add("active");
+}
+
+function closeLogin(){
+document.getElementById("loginModal").classList.remove("active");
+}
+
+/* Close modal if clicking outside */
+window.onclick = function(event){
+let modal = document.getElementById("loginModal");
+if(event.target === modal){
+modal.classList.remove("active");
+}
+}
+
+</script>
+
+</body>
+</html>

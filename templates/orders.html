@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en" class="transition duration-300">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LOUNGE Orders Management</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+<script> tailwind.config = { darkMode: 'class' } </script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+body { font-family:'DM Sans',sans-serif; overflow-x:hidden; }
+h1,h2,h3{ font-family:'Poppins',sans-serif; }
+
+/* Glass Effect */
+.glass{
+    background: rgba(255,255,255,0.25);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255,255,255,0.3);
+    transition: box-shadow 0.3s, transform 0.3s;
+}
+.glass:hover{
+    box-shadow: 0 0 20px rgba(255,255,255,0.5);
+    transform: translateY(-3px);
+}
+.dark .glass{
+    background: rgba(30,41,59,0.35);
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* Bubble Background */
+.bubbles{
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    z-index: 0;
+    pointer-events: none;
+}
+.bubble{
+    position: absolute;
+    bottom: -150px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(255,255,255,0.4) 40%, rgba(255,255,255,0.2) 60%, transparent 70%);
+    animation: floatUp linear infinite;
+    opacity: 0.6;
+    backdrop-filter: blur(4px);
+}
+@keyframes floatUp{
+    0%{ transform: translateY(0) scale(1); opacity: 0; }
+    10%{ opacity: 0.6; }
+    90%{ opacity: 0.6; }
+    100%{ transform: translateY(-120vh) scale(1.2); opacity: 0; }
+}
+
+/* Decorative Lines & Circles */
+.decorative-line {
+    position: absolute;
+    width: 2px;
+    height: 150px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.5), transparent);
+    transform: rotate(25deg);
+    opacity: 0.3;
+    z-index: 0;
+    pointer-events: none;
+}
+.decorative-line.reverse { transform: rotate(-25deg); }
+.decorative-circle {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    box-shadow: 0 0 20px rgba(255,255,255,0.2);
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Receipt Print */
+#receipt {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: white;
+    color: black;
+    font-family: 'DM Sans', sans-serif;
+    z-index: 60;
+    overflow-y: auto;
+    padding: 2rem;
+}
+#receipt h2{ font-family: 'Poppins', sans-serif; font-weight: 700; }
+@media print {
+    body * { visibility: hidden; }
+    #receipt, #receipt * { visibility: visible; }
+    #receipt { position: absolute; top:0; left:0; width:100%; }
+}
+</style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-green-400 via-blue-500 to-indigo-600 dark:from-gray-900 dark:via-gray-800 dark:to-black transition duration-500">
+
+<div class="bubbles" id="bubbles"></div>
+
+<!-- Sidebar -->
+<aside id="sidebar" class="fixed top-0 left-0 h-full w-64 glass p-6 text-white z-40 transform -translate-x-full transition-transform duration-300 flex flex-col justify-between">
+  <div>
+    <div class="flex items-center justify-between mb-10">
+      <h1 class="text-2xl font-bold">LOUNGE</h1>
+      <button id="closeSidebar" class="p-2 rounded-lg hover:bg-white/20 transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    <nav class="space-y-3">
+      <a href="{{ url_for('dashboard') }}" class="block px-4 py-3 rounded-xl hover:bg-white/20 transition">Dashboard</a>
+      <a href="{{ url_for('orders') }}" class="block px-4 py-3 rounded-xl hover:bg-white/20 transition">Orders</a>
+      <a href="{{ url_for('customers') }}" class="block px-4 py-3 rounded-xl hover:bg-white/20 transition">Customers</a>
+      <a href="{{ url_for('reports') }}" class="block px-4 py-3 rounded-xl hover:bg-white/20 transition">Reports</a>
+      <a href="{{ url_for('settings') }}" class="block px-4 py-3 rounded-xl hover:bg-white/20 transition">Settings</a>
+    </nav>
+  </div>
+  <div class="mt-10 flex flex-col gap-2">
+    <p class="text-sm opacity-80 truncate">{{ user }}</p>
+    <p class="text-xs opacity-60 truncate">admin@laundry.com</p>
+    <a href="{{ url_for('logout') }}" class="mt-3 block px-4 py-2 rounded-xl bg-red-500 hover:bg-red-400 text-white text-sm text-center transition">Log Out</a>
+  </div>
+</aside>
+
+<div id="overlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-30"></div>
+
+<!-- MAIN CONTENT -->
+<div class="relative z-10 p-4 sm:p-6 md:p-8 text-white transition-all duration-300">
+
+  <div class="decorative-line" style="top:50px; left:20%;"></div>
+  <div class="decorative-line reverse" style="top:200px; left:65%;"></div>
+  <div class="decorative-circle" style="top:150px; left:10%;"></div>
+  <div class="decorative-circle" style="top:300px; left:75%; width:150px; height:150px;"></div>
+
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+    <button id="openSidebar" class="p-3 rounded-xl bg-white/20 hover:bg-white/30 transition self-start sm:self-auto">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+    <button onclick="toggleDark()" class="px-5 py-2 rounded-full bg-white/20 hover:bg-white/30 transition self-start sm:self-auto" id="darkModeBtn">🌙</button>
+  </div>
+
+  <div class="mb-6">
+    <h2 class="text-3xl sm:text-4xl font-bold">Orders Management</h2>
+    <p class="text-white/70 text-sm sm:text-base mt-2">Manage and track all laundry orders</p>
+  </div>
+
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+    <input type="text" id="searchOrders" placeholder="Search orders..." class="px-4 py-2 rounded-xl text-black w-full sm:w-1/3 focus:outline-none focus:ring-2 focus:ring-blue-400">
+    <div class="flex flex-wrap gap-2">
+      <button class="px-4 py-2 rounded-xl glass hover:scale-105 transition" id="allBtn">All</button>
+      <button id="newOrderBtn" class="px-4 py-2 rounded-xl glass hover:scale-105 transition">New Order</button>
+    </div>
+  </div>
+
+  <div class="glass p-6 rounded-2xl shadow-lg overflow-x-auto">
+    <table class="min-w-full text-left table-auto">
+      <thead>
+        <tr class="border-b border-white/30">
+          <th class="px-4 py-2">Order ID</th>
+          <th class="px-4 py-2">Customer</th>
+          <th class="px-4 py-2">Service</th>
+          <th class="px-4 py-2">Weight</th>
+          <th class="px-4 py-2">Date</th>
+          <th class="px-4 py-2">Pickup Date</th>
+          <th class="px-4 py-2">Status</th>
+          <th class="px-4 py-2">Amount</th>
+          <th class="px-4 py-2">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-white/20"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- NEW ORDER MODAL -->
+<div id="newOrderModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden p-2">
+  <div class="glass p-6 rounded-2xl w-full max-w-lg relative">
+    <button id="closeModal" class="absolute top-3 right-3 text-white hover:text-red-400">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+    <h3 class="text-2xl font-bold mb-4 text-white">New Laundry Order</h3>
+    <form id="newOrderForm" class="flex flex-col gap-3 text-black">
+      <input type="text" id="fullName" placeholder="Full Name" class="px-4 py-2 rounded-xl focus:outline-none w-full">
+      <input type="text" id="contactNumber" placeholder="Contact Number" class="px-4 py-2 rounded-xl focus:outline-none w-full">
+      <label class="mt-2 font-semibold text-white">Select Laundry Service:</label>
+      <select id="serviceType" class="px-4 py-2 rounded-xl focus:outline-none w-full">
+        <option value="wash_dry">Wash & Dry</option>
+        <option value="wash_dry_fold">Wash-Dry-Fold</option>
+        <option value="dry_clean">Dry Clean</option>
+      </select>
+      <input type="number" id="weight" placeholder="Weight (kg)" class="px-4 py-2 rounded-xl focus:outline-none w-full" min="1">
+      <label class="flex items-center gap-2 mt-2 text-white">
+        <input type="checkbox" id="expressService">
+        Express Service (Yes/No)
+      </label>
+      <label class="font-semibold mt-2 text-white">Payment Method:</label>
+      <select id="paymentMethod" class="px-4 py-2 rounded-xl focus:outline-none w-full">
+        <option value="cash">Cash</option>
+        <option value="online">Online</option>
+      </select>
+      <div class="flex justify-between text-white mt-1">
+        <span>Amount: <span id="amountPreview">₱0.00</span></span>
+        <span>Pickup: <span id="pickupPreview">---</span></span>
+      </div>
+      <button type="button" id="submitOrder" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-400 transition">Confirm Order</button>
+    </form>
+  </div>
+</div>
+
+<!-- PRINTABLE RECEIPT -->
+<div id="receipt"></div>
+
+<script>
+// =============================
+// UTILITY
+// =============================
+const bubbleContainer = document.getElementById('bubbles');
+function createBubble(){
+    const bubble = document.createElement('div');
+    bubble.classList.add('bubble');
+    const size = Math.random()*60+20;
+    bubble.style.width=size+'px';
+    bubble.style.height=size+'px';
+    bubble.style.left=Math.random()*100+'vw';
+    bubble.style.animationDuration=(Math.random()*10+12)+'s';
+    bubble.style.animationDelay=Math.random()*5+'s';
+    bubbleContainer.appendChild(bubble);
+    setTimeout(()=>bubble.remove(),20000);
+}
+setInterval(createBubble,700);
+
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('overlay');
+document.getElementById('openSidebar').onclick = () => { sidebar.classList.remove('-translate-x-full'); overlay.classList.remove('hidden'); };
+document.getElementById('closeSidebar').onclick = () => { sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden'); };
+overlay.onclick = () => { sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden'); };
+
+function toggleDark(){
+    document.documentElement.classList.toggle('dark');
+    localStorage.setItem('theme',document.documentElement.classList.contains('dark')?'dark':'light');
+}
+if(localStorage.getItem('theme')==='dark'){ document.documentElement.classList.add('dark'); }
+
+// =============================
+// ORDERS
+// =============================
+const STATUS_LIST = ["New","Washing","Drying","Folding","To Pickup","Received","Completed"];
+function getStatusColor(status){
+    switch(status){
+        case "New": return "bg-blue-500";
+        case "Washing": return "bg-yellow-500";
+        case "Drying": return "bg-orange-500";
+        case "Folding": return "bg-purple-500";
+        case "To Pickup": return "bg-indigo-500";
+        case "Received": return "bg-pink-500";
+        case "Completed": return "bg-green-600";
+        default: return "bg-gray-500";
+    }
+}
+
+function formatCurrency(amount){ return "₱" + parseFloat(amount).toFixed(2); }
+
+function addRow(order){
+    const tbody = document.querySelector('table tbody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td class="px-4 py-2">${order.transaction_id}</td>
+        <td class="px-4 py-2">${order.name}</td>
+        <td class="px-4 py-2">${order.service}</td>
+        <td class="px-4 py-2">${order.weight}</td>
+        <td class="px-4 py-2">${order.date}</td>
+        <td class="px-4 py-2">${order.pickup}</td>
+        <td class="px-4 py-2"><span class="statusBadge px-3 py-1 rounded text-white ${getStatusColor(order.status)}">${order.status}</span></td>
+        <td class="px-4 py-2">${formatCurrency(order.amount)}</td>
+        <td class="px-4 py-2 space-x-1">
+            <button class="px-2 py-1 bg-blue-500 text-white rounded editBtn">Edit</button>
+            <button class="px-2 py-1 bg-green-500 text-white rounded printBtn">Print</button>
+            <button class="px-2 py-1 bg-red-500 text-white rounded deleteBtn">Delete</button>
+        </td>
+    `;
+    tbody.appendChild(tr);
+}
+
+async function loadOrders(){
+    try {
+        const res = await fetch('/api/orders');
+        if(!res.ok) throw new Error('Failed to load orders');
+        const orders = await res.json();
+        document.querySelector('table tbody').innerHTML = '';
+        orders.forEach(addRow);
+    } catch(err){ console.error(err); }
+}
+loadOrders();
+
+// =============================
+// LOAD ORDERS & CACHE
+// =============================
+let ordersCache = [];
+async function loadOrdersCache() {
+    try {
+        const res = await fetch('/api/orders');
+        if (!res.ok) throw new Error('Failed to load orders');
+        ordersCache = await res.json();
+        renderOrders(ordersCache);
+    } catch(err){ console.error(err); }
+}
+
+function renderOrders(orders){
+    const tbody = document.querySelector('table tbody');
+    tbody.innerHTML = '';
+    orders.forEach(addRow);
+}
+
+// Initial load
+loadOrdersCache();
+
+// =============================
+// AUTO REFRESH EVERY 10 SECONDS
+// =============================
+setInterval(async () => {
+    try {
+        const res = await fetch('/api/orders');
+        if (!res.ok) throw new Error('Failed to refresh orders');
+        const latestOrders = await res.json();
+        // Only re-render if there are changes
+        if (JSON.stringify(latestOrders) !== JSON.stringify(ordersCache)){
+            ordersCache = latestOrders;
+            renderOrders(ordersCache);
+        }
+    } catch(err){ console.error(err); }
+}, 10000); // every 10 seconds
+
+// =============================
+// NEW ORDER FORM
+// =============================
+const newOrderModal = document.getElementById('newOrderModal');
+document.getElementById('newOrderBtn').onclick = () => newOrderModal.classList.remove('hidden');
+document.getElementById('closeModal').onclick = () => newOrderModal.classList.add('hidden');
+
+const weightInput = document.getElementById('weight');
+const serviceSelect = document.getElementById('serviceType');
+const expressCheckbox = document.getElementById('expressService');
+const amountDisplay = document.getElementById('amountPreview');
+const pickupDisplay = document.getElementById('pickupPreview');
+
+function updatePreview(){
+    const weight = parseFloat(weightInput.value) || 0;
+    const service = serviceSelect.value;
+    const express = expressCheckbox.checked;
+    let baseRate = service==='wash_dry'?5:service==='wash_dry_fold'?8:10;
+    let amount = baseRate * weight;
+    if(express) amount *= 1.5;
+    amountDisplay.textContent = "₱" + amount.toFixed(2);
+
+    const pickupDate = new Date();
+    pickupDate.setDate(pickupDate.getDate() + (express ? 1 : 2));
+    pickupDisplay.textContent = pickupDate.toISOString().split('T')[0];
+}
+
+weightInput.addEventListener('input', updatePreview);
+serviceSelect.addEventListener('change', updatePreview);
+expressCheckbox.addEventListener('change', updatePreview);
+
+document.getElementById('submitOrder').onclick = async () => {
+    const name = document.getElementById('fullName').value.trim();
+    const contact = document.getElementById('contactNumber').value.trim();
+    const service = serviceSelect.value;
+    const weight = parseFloat(weightInput.value);
+    const express = expressCheckbox.checked;
+    const payment = document.getElementById('paymentMethod').value;
+
+    if(!name || !contact || !weight){
+        alert("Please fill in required fields");
+        return;
+    }
+
+    let baseRate = service==='wash_dry'?5:service==='wash_dry_fold'?8:10;
+    let amount = baseRate*weight;
+    if(express) amount *= 1.5;
+
+    const today = new Date().toISOString().split('T')[0];
+    const pickupDate = new Date();
+    pickupDate.setDate(pickupDate.getDate() + (express ? 1 : 2));
+
+    const orderData = {
+        name,
+        contact,
+        service: service.replaceAll('_',' ').toUpperCase(),
+        weight: weight + " kg",
+        date: today,
+        pickup: pickupDate.toISOString().split('T')[0],
+        status: "New",
+        amount,
+        payment
+    };
+
+    try {
+        const res = await fetch('/api/orders', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify(orderData)
+        });
+        if(!res.ok) throw new Error('Failed to create order');
+        const newOrder = await res.json();
+        addRow(newOrder);
+        newOrderModal.classList.add('hidden');
+        document.getElementById('newOrderForm').reset();
+        amountDisplay.textContent = '₱0.00';
+        pickupDisplay.textContent = '---';
+    } catch(err){
+        console.error(err);
+        alert('Failed to create order.');
+    }
+};
+
+// =============================
+// TABLE ACTIONS
+// =============================
+document.querySelector('table tbody').addEventListener('click', async function(e){
+    const tr = e.target.closest('tr');
+    if(!tr) return;
+    const transaction_id = tr.children[0].textContent;
+
+    // DELETE
+    if(e.target.classList.contains('deleteBtn')){
+        try {
+            const res = await fetch(`/api/orders/${transaction_id}`, {method:'DELETE'});
+            if(!res.ok) throw new Error('Failed to delete');
+            tr.remove();
+        } catch(err){ console.error(err); }
+    }
+
+    // EDIT STATUS
+    if(e.target.classList.contains('editBtn')){
+        const statusCell = tr.children[6];
+        const currentStatus = statusCell.textContent.trim();
+        const select = document.createElement('select');
+        select.className = "px-2 py-1 rounded text-black";
+        STATUS_LIST.forEach(status=>{
+            const option = document.createElement('option');
+            option.value = status;
+            option.textContent = status;
+            if(status===currentStatus) option.selected=true;
+            select.appendChild(option);
+        });
+        statusCell.innerHTML='';
+        statusCell.appendChild(select);
+        select.focus();
+        select.addEventListener('change', async function(){
+            const newStatus = this.value;
+            try {
+                const res = await fetch(`/api/orders/${transaction_id}`, {
+                    method:'PATCH',
+                    headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({status:newStatus})
+                });
+                if(!res.ok) throw new Error('Failed to update status');
+                statusCell.innerHTML = `<span class="statusBadge px-3 py-1 rounded text-white ${getStatusColor(newStatus)}">${newStatus}</span>`;
+            } catch(err){ console.error(err); }
+        });
+    }
+
+    // PRINT
+    if(e.target.classList.contains('printBtn')){
+        try {
+            const res = await fetch(`/api/orders/${transaction_id}`);
+            if(!res.ok) throw new Error('Failed to fetch order');
+            const order = await res.json();
+            const receipt = document.getElementById('receipt');
+            receipt.innerHTML = `
+            <div style="max-width:500px;margin:auto;padding:20px;border:2px solid #333;border-radius:12px;font-family:'Playfair Display', serif;background:white;">
+                <div style="text-align:center;margin-bottom:15px;">
+                    <h1 style="font-size:28px;font-weight:700;color:#9d174d;margin:0;">Laundry Lounge</h1>
+                    <p style="font-style:italic;color:#6a0d83;margin:0;">From Stains to Sparkle</p>
+                    <hr style="margin:10px 0;border-color:#ccc;">
+                </div>
+                <div style="margin-bottom:10px;">
+                    <p><strong>Order ID:</strong> ${order.transaction_id}</p>
+                    <p><strong>Customer:</strong> ${order.name}</p>
+                    <p><strong>Service:</strong> ${order.service}</p>
+                    <p><strong>Weight:</strong> ${order.weight}</p>
+                </div>
+                <div style="margin-bottom:10px;">
+                    <p><strong>Date:</strong> ${order.date}</p>
+                    <p><strong>Pickup Date:</strong> ${order.pickup}</p>
+                    <p><strong>Status:</strong> <span style="color:#16a34a;font-weight:bold;">${order.status}</span></p>
+                    <p><strong>Amount:</strong> ${formatCurrency(order.amount)}</p>
+                </div>
+                <div style="margin-bottom:10px;">
+                    <p><strong>Contact:</strong> ${order.contact}</p>
+                    <p><strong>Payment Method:</strong> ${order.payment}</p>
+                </div>
+                <div style="text-align:center;margin-top:15px;">
+                    <canvas id="qrCanvas"></canvas>
+                </div>
+                <div style="text-align:center;margin-top:15px;font-size:0.85rem;color:#555;">
+                    Scan this QR code to view your order status online
+                </div>
+                <hr style="margin:15px 0;border-color:#ccc;">
+                <p style="text-align:center;font-size:0.8rem;color:#888;">Thank you for choosing Laundry Lounge!</p>
+            </div>
+            `;
+            QRCode.toCanvas(document.getElementById('qrCanvas'), order.tracking_url, {width:150}, function(err){
+                if(err) console.error(err);
+                else{
+                    receipt.style.display='block';
+                    setTimeout(()=>{ window.print(); receipt.style.display='none'; },100);
+                }
+            });
+        } catch(err){ console.error(err); alert('Unable to print order.'); }
+    }
+});
+
+// =============================
+// SEARCH
+// =============================
+document.getElementById('searchOrders').addEventListener('input', function(){
+    const filter = this.value.toLowerCase();
+    document.querySelectorAll('table tbody tr').forEach(tr=>{
+        tr.style.display = tr.textContent.toLowerCase().includes(filter)?'':'none';
+    });
+});
+document.getElementById('allBtn').onclick = () => loadOrders();
+
+updatePreview();
+</script>
+</body>
+</html>
