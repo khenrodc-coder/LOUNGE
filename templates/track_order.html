@@ -12,7 +12,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
-body { font-family:'DM Sans',sans-serif; overflow-x:hidden; background:#111827; color:white; }
+body { 
+    font-family:'DM Sans',sans-serif; 
+    overflow-x:hidden; 
+    background:#111827; 
+    color:white; 
+}
 h1,h2,h3{ font-family:'Poppins',sans-serif; }
 
 /* Glass Effect */
@@ -24,6 +29,8 @@ h1,h2,h3{ font-family:'Poppins',sans-serif; }
     border-radius:20px;
     padding:2rem;
     transition: box-shadow 0.3s, transform 0.3s;
+    width: 100%;
+    max-width: 100%;
 }
 .glass:hover{
     box-shadow: 0 0 20px rgba(255,255,255,0.5);
@@ -82,9 +89,13 @@ h1,h2,h3{ font-family:'Poppins',sans-serif; }
 }
 
 /* Table */
-table { width:100%; border-collapse: separate; border-spacing:0 8px; }
-thead tr th { text-align:left; padding:0.75rem 1rem; font-weight:600; font-size:1rem; color:#d1d5db; }
-tbody tr { background: rgba(255,255,255,0.05); border-radius:12px; transition: transform 0.2s, box-shadow 0.2s; }
+table { width:100%; border-collapse: separate; border-spacing:0 8px; min-width:600px; }
+thead tr th { 
+    text-align:left; padding:0.75rem 1rem; font-weight:600; font-size:1rem; color:#d1d5db; 
+}
+tbody tr { 
+    background: rgba(255,255,255,0.05); border-radius:12px; transition: transform 0.2s, box-shadow 0.2s; 
+}
 tbody tr:hover { transform: translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.5);}
 td { padding:0.75rem 1rem; font-size:0.95rem; color:white; }
 .status-badge { display:inline-block; padding:0.25rem 0.75rem; border-radius:9999px; font-weight:600; font-size:0.85rem; color:white; }
@@ -93,12 +104,29 @@ td { padding:0.75rem 1rem; font-size:0.95rem; color:white; }
 .status-pending { background:#f59e0b; }
 
 /* Header */
-header { text-align:center; margin-bottom:2rem; }
-header h1 { font-size:3rem; font-weight:700; margin:0; }
-header p { font-size:1.2rem; color:#fcd34d; margin-top:0.5rem; font-style:italic; }
+header { text-align:center; margin-bottom:2rem; padding: 1rem; }
+header h1 { font-size:2.25rem; font-weight:700; margin:0; }
+header p { font-size:1rem; color:#fcd34d; margin-top:0.5rem; font-style:italic; }
 
 /* Footer */
 footer { text-align:center; padding:2rem 1rem; font-size:0.9rem; color:#9ca3af; margin-top:auto; background:rgba(0,0,0,0.2); backdrop-filter: blur(10px); border-top:1px solid rgba(255,255,255,0.1);}
+
+/* Responsive tweaks */
+@media (max-width: 768px){
+    header h1 { font-size:1.75rem; }
+    header p { font-size:0.9rem; }
+    table { min-width: 100%; font-size:0.85rem; }
+    .glass { padding:1rem; }
+}
+@media (max-width: 480px){
+    header h1 { font-size:1.5rem; }
+    header p { font-size:0.8rem; }
+    table thead { display:none; }
+    table, tbody, tr, td { display:block; width:100%; }
+    tr { margin-bottom:1rem; }
+    td { padding:0.5rem; text-align:right; position:relative; }
+    td::before { content: attr(data-label); position:absolute; left:0; width:50%; padding-left:1rem; font-weight:600; text-align:left; color:#d1d5db; }
+}
 </style>
 </head>
 <body class="min-h-screen flex flex-col bg-gradient-to-br from-gray-900 via-gray-800 to-black transition duration-500">
@@ -110,7 +138,7 @@ footer { text-align:center; padding:2rem 1rem; font-size:0.9rem; color:#9ca3af; 
       <p>From Stains to Sparkle</p>
   </header>
 
-  <!-- MAIN CONTENT: make it flex-grow -->
+  <!-- MAIN CONTENT -->
   <main class="flex-grow relative z-10 mx-auto max-w-4xl p-4">
       <section class="glass">
           <h2 class="text-2xl font-bold mb-4 text-center">Track Your Order</h2>
@@ -134,7 +162,19 @@ footer { text-align:center; padding:2rem 1rem; font-size:0.9rem; color:#9ca3af; 
                           <th>Status</th>
                       </tr>
                   </thead>
-                  <tbody id="orderTable"></tbody>
+                  <tbody>
+<tr>
+<td data-label="Order ID">{{ order.transaction_id }}</td>
+<td data-label="Customer">{{ order.name }}</td>
+<td data-label="Service">{{ order.service }}</td>
+<td data-label="Weight">{{ order.weight }} kg</td>
+<td data-label="Pickup Date">{{ order.pickup }}</td>
+<td data-label="Amount">₱{{ order.amount }}</td>
+<td data-label="Status">
+<span class="status-badge status-in-progress">{{ order.status }}</span>
+</td>
+</tr>
+</tbody>
               </table>
           </div>
       </section>
@@ -145,5 +185,19 @@ footer { text-align:center; padding:2rem 1rem; font-size:0.9rem; color:#9ca3af; 
     <p><strong>Contact:</strong> +63 9399411125</p>
     <p><strong>Services:</strong> Wash & Fold, Dry Cleaning, Express Service</p>
   </footer>
+
+  <script>
+  // Generate bubbles dynamically
+  const bubbleContainer = document.getElementById('bubbles');
+  for(let i=0;i<30;i++){
+      const bubble = document.createElement('div');
+      bubble.classList.add('bubble');
+      bubble.style.width = bubble.style.height = `${Math.random()*60+20}px`;
+      bubble.style.left = `${Math.random()*100}%`;
+      bubble.style.animationDuration = `${Math.random()*10+5}s`;
+      bubble.style.animationDelay = `${Math.random()*5}s`;
+      bubbleContainer.appendChild(bubble);
+  }
+  </script>
 </body>
 </html>

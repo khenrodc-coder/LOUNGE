@@ -16,7 +16,7 @@ QR_FOLDER = "static/qrcodes"
 os.makedirs(QR_FOLDER, exist_ok=True)
 
 ADMIN_USERNAME = "SuperAdmin001"
-ADMIN_PASSWORD = "Str0ngP@ssw0rd!2026"
+ADMIN_PASSWORD = "superadmin2026"
 
 # -----------------------
 # DATABASE CONNECTION
@@ -290,8 +290,7 @@ def api_orders():
 
         transaction_id = generate_order_id()
         tracking_token = generate_tracking_token()
-        tracking_url = url_for(
-            "track_order", token=tracking_token, _external=True)
+        tracking_url = f"http://192.168.100.113:5000/track/{tracking_token}"
         qr_path = os.path.join(QR_FOLDER, f"{transaction_id}.png")
         qrcode.make(tracking_url).save(qr_path)
 
@@ -388,4 +387,4 @@ def api_order_detail(transaction_id):
 # RUN APP
 # -----------------------
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
