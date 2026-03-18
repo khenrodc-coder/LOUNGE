@@ -9,36 +9,72 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
 
 <style>
+/* ==================== IMAGE GLOW & ANIMATION ==================== */
+.img-glow{
+  animation:
+    glowPulse 2s ease-in-out infinite alternate,
+    enterImage 1.2s ease-out forwards,
+    floatImage 4s ease-in-out infinite 1.2s;
+}
+@keyframes enterImage{
+  0%{ transform: translate(-400px, 400px) scale(0.7); opacity:0; }
+  100%{ transform: translate(0,0) scale(1); opacity:1; }
+}
+@keyframes glowPulse{
+  from{
+    filter: brightness(1)
+      drop-shadow(0 0 15px rgba(255,105,180,0.5))
+      drop-shadow(0 0 30px rgba(192,132,252,0.4));
+  }
+  to{
+    filter: brightness(1.3)
+      drop-shadow(0 0 50px rgba(255,105,180,1))
+      drop-shadow(0 0 100px rgba(192,132,252,0.8));
+  }
+}
+@keyframes floatImage{
+  0%,100%{ transform: translate(0,0);}
+  50%{ transform: translate(10px,-10px);}
+}
 
+/* ==================== BODY & BACKGROUND ==================== */
 body{
   font-family: 'Playfair Display', serif;
-
   background:
-    url('/static/img/character.jpg') no-repeat center center / cover,
+    url("{{ url_for('static', filename='img/character.jpg') }}") no-repeat center center / cover,
     linear-gradient(-45deg,#7a003c,#6a0d83,#2e1f92,#9d174d);
-
-  background-size: cover, 400% 400%;
-  animation: gradientMove 12s ease infinite;
+  background-size: cover;
+  min-height:100vh;
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: hidden;
 }
 
-/* Gradient Animation */
-@keyframes gradientMove{
-  0%{background-position:0% 50%}
-  50%{background-position:100% 50%}
-  100%{background-position:0% 50%}
+/* ==================== ANIMATED LINES ==================== */
+.lines-container{
+  position:fixed;
+  inset:0;
+  z-index:1;
+  overflow:hidden;
+  pointer-events:none;
+}
+.line{
+  position:absolute;
+  width:2px;
+  height:150%;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.05), rgba(255,255,255,0.15));
+  transform: rotate(25deg);
+  animation: moveLine 8s linear infinite;
+}
+@keyframes moveLine{
+  0%{ transform: translateX(-100%) rotate(25deg);}
+  100%{ transform: translateX(200%) rotate(25deg);}
 }
 
-/* Fade in */
-.fade-in{
-  animation: fadeIn 2s ease forwards;
-  opacity:0;
-}
+/* ==================== GRADIENT & TEXT ==================== */
+.fade-in{ animation: fadeIn 2s ease forwards; opacity:0; }
+@keyframes fadeIn{ to{opacity:1;} }
 
-@keyframes fadeIn{
-  to{opacity:1;}
-}
-
-/* Gradient Text */
 .gradient-text{
   background: linear-gradient(90deg,#ffffff,#f9a8d4,#c084fc,#ffffff);
   background-size: 200% auto;
@@ -47,12 +83,8 @@ body{
   background-clip: text;
   animation: textShine 5s linear infinite;
 }
+@keyframes textShine{ to{background-position:200% center;} }
 
-@keyframes textShine{
-  to{background-position:200% center;}
-}
-
-/* Glow */
 .glow{
   text-shadow:
     0 0 10px rgba(255,255,255,0.6),
@@ -60,38 +92,22 @@ body{
     0 0 40px rgba(255,105,180,0.6);
 }
 
-/* Rotating Ring */
 .glow-ring{
   position:absolute;
-  width:600px;
-  height:600px;
+  width:100%;
+  height:100%;
   border-radius:50%;
   border:40px solid rgba(255,255,255,0.18);
   box-shadow:
     0 0 60px rgba(255,105,180,0.6),
     0 0 120px rgba(255,182,255,0.5);
-  animation: rotateRing 25s linear infinite, pulseRing 4s ease-in-out infinite;
 }
-
-@keyframes rotateRing{
-  from{ transform: rotate(0deg);}
-  to{ transform: rotate(360deg);}
-}
-
 @keyframes pulseRing{
-  0%,100%{
-    box-shadow:
-      0 0 60px rgba(255,105,180,0.6),
-      0 0 120px rgba(255,182,255,0.5);
-  }
-  50%{
-    box-shadow:
-      0 0 100px rgba(255,105,180,0.9),
-      0 0 200px rgba(255,182,255,0.8);
-  }
+  0%,100%{ box-shadow:0 0 60px rgba(255,105,180,0.6),0 0 120px rgba(255,182,255,0.5); }
+  50%{ box-shadow:0 0 100px rgba(255,105,180,0.9),0 0 200px rgba(255,182,255,0.8); }
 }
 
-/* Floating Login Button */
+/* ==================== BUTTONS ==================== */
 .glass-btn{
   position:relative;
   overflow:hidden;
@@ -101,125 +117,59 @@ body{
   transition: 0.3s ease;
   animation: floatBtn 4s ease-in-out infinite;
 }
-
-@keyframes floatBtn{
-  0%,100%{ transform: translateY(0);}
-  50%{ transform: translateY(-10px);}
+.glass-btn:hover{
+  box-shadow: 0 0 20px rgba(255,105,180,0.8), 0 0 40px rgba(255,182,255,0.6);
 }
+@keyframes floatBtn{ 0%,100%{ transform: translateY(0);} 50%{ transform: translateY(-10px);} }
 
-/* Ripple */
-.glass-btn::after{
-  content:'';
-  position:absolute;
-  width:0;
-  height:0;
-  background: rgba(255,255,255,0.4);
-  border-radius:50%;
-  transform: translate(-50%,-50%);
-  top:50%;
-  left:50%;
-  opacity:0;
-  transition: width 0.6s ease, height 0.6s ease, opacity 1s;
-}
+/* ==================== LOGIN MODAL ==================== */
+.login-modal{ position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; visibility:hidden; opacity:0; transition:0.3s ease; z-index:50; }
+.login-modal.active{ visibility:visible; opacity:1; }
+.login-box{ background: rgba(255,255,255,0.1); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.3); padding:40px; border-radius:20px; width:90%; max-width:350px; box-shadow:0 0 40px rgba(255,105,180,0.6); transform:scale(0.8); transition:0.3s ease; }
+.login-modal.active .login-box{ transform:scale(1); }
 
-.glass-btn:hover::after{
-  width:300px;
-  height:300px;
-}
+/* ==================== WARNING MODAL ==================== */
+#errorModal{ position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; visibility:hidden; opacity:0; transition:0.3s ease; z-index:60; }
+#errorModal.active{ visibility:visible; opacity:1; }
+#errorModal .modal-box{ background: rgba(255,255,255,0.1); backdrop-filter: blur(15px); border:1px solid rgba(255,255,255,0.3); padding:30px; border-radius:20px; width:90%; max-width:400px; text-align:center; transform:scale(0.8); transition:0.3s ease; }
+#errorModal.active .modal-box{ transform:scale(1); }
 
-/* Floating bubbles */
-.bubble{
-  position:absolute;
-  bottom:-100px;
-  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(255,255,255,0.2));
-  border-radius:9999px;
-  animation: rise linear infinite;
-  opacity:0.6;
-}
-
-@keyframes rise{
-  from{ transform: translateY(0) scale(1); opacity:0.6;}
-  to{ transform: translateY(-110vh) scale(1.3); opacity:0;}
-}
-
-/* Waves */
-.wave{
-  position:absolute;
-  bottom:0;
-  width:200%;
-  height:200px;
-  background: rgba(255,255,255,0.05);
-  border-radius:40%;
-  animation: waveMove 8s linear infinite;
-}
-
-.wave:nth-child(2){
-  bottom:20px;
-  opacity:0.5;
-  animation-duration:12s;
-}
-
-@keyframes waveMove{
-  from{ transform: translateX(0);}
-  to{ transform: translateX(-50%);}
-}
-
-/* Login Modal */
-.login-modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.6);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  visibility:hidden;
-  opacity:0;
-  transition:0.3s ease;
-}
-
-.login-modal.active{
-  visibility:visible;
-  opacity:1;
-}
-
-.login-box{
-  background: rgba(255,255,255,0.1);
-  backdrop-filter: blur(15px);
-  border: 1px solid rgba(255,255,255,0.3);
-  padding:40px;
-  border-radius:20px;
-  width:350px;
-  box-shadow:0 0 40px rgba(255,105,180,0.6);
-  transform:scale(0.8);
-  transition:0.3s ease;
-}
-
-.login-modal.active .login-box{
-  transform:scale(1);
-}
-
+/* ==================== FLOATING BUBBLES ==================== */
+.bubble{ position:absolute; bottom:-100px; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(255,255,255,0.2)); border-radius:9999px; animation: rise linear infinite; opacity:0.6; }
+@keyframes rise{ from{ transform: translateY(0) scale(1); opacity:0.6;} to{ transform: translateY(-110vh) scale(1.3); opacity:0;} }
 </style>
 </head>
 
 <body class="text-white flex flex-col min-h-screen relative">
 
-<section class="flex flex-1 items-center justify-center relative text-center fade-in">
+<!-- Animated lines -->
+<div class="lines-container">
+  <div class="line" style="top:10%; animation-delay:0s;"></div>
+  <div class="line" style="top:30%; animation-delay:2s;"></div>
+  <div class="line" style="top:50%; animation-delay:4s;"></div>
+  <div class="line" style="top:70%; animation-delay:1s;"></div>
+  <div class="line" style="top:90%; animation-delay:3s;"></div>
+</div>
 
-<div class="relative flex items-center justify-center w-[600px] h-[600px]">
+<section class="flex flex-1 items-center justify-center relative text-center fade-in px-4">
 
+ <img 
+src="{{ url_for('static', filename='img/c12.png') }}" 
+class="float-img img-glow w-80 md:w-80 lg:w-[800px] mt-6">
+
+<div class="relative flex items-center justify-center w-[90vw] max-w-[600px] h-[90vw] max-h-[600px]">
 <div class="glow-ring absolute"></div>
-
 <div class="relative z-20 flex flex-col items-center">
 
-<p class="italic text-2xl text-pink-200 mb-4 tracking-wide">
+<p class="italic text-lg sm:text-xl md:text-2xl text-pink-200 mb-4 tracking-wide">
 From Stains to Sparkle
 </p>
 
-<h1 class="text-[85px] leading-[0.9] font-semibold tracking-wide gradient-text glow">
+<h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-[85px] leading-[0.9] font-semibold tracking-wide gradient-text glow">
 Laundry <br> Lounge
 </h1>
 
-<button onclick="openLogin()" class="glass-btn mt-8 px-10 py-4 rounded-full text-xl font-semibold shadow-xl">
+<button onclick="openLogin()" class="glass-btn mt-8 px-10 py-4 rounded-full text-lg sm:text-xl font-semibold shadow-xl">
 Login
 </button>
 
@@ -234,68 +184,124 @@ Login
 <div class="bubble w-4 h-4 left-[75%]" style="animation-duration:9s;"></div>
 <div class="bubble w-12 h-12 left-[85%]" style="animation-duration:16s;"></div>
 
-<!-- Waves -->
-<div class="wave"></div>
-<div class="wave"></div>
-
 <!-- LOGIN MODAL -->
 <div id="loginModal" class="login-modal">
+<div class="login-box relative text-center p-8">
+<button onclick="closeLogin()" class="absolute top-4 right-4 text-white text-xl hover:text-pink-300">✕</button>
+<h2 class="text-3xl mb-2 font-semibold gradient-text">Welcome Back</h2>
+<p class="text-sm text-pink-200 mb-6">Login to Laundry Lounge</p>
 
-<div class="login-box text-center">
-
-<h2 class="text-3xl mb-6 font-semibold">Login</h2>
-
-<!-- Flask Flash Messages -->
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-<p class="text-red-300 mb-4">{{ messages[0] }}</p>
-{% endif %}
-{% endwith %}
-
-<form action="/login" method="POST">
-
+<form action="/login" method="POST" class="space-y-4">
+<div class="relative">
+<span class="absolute left-3 top-3 text-white/70">👤</span>
 <input type="text" name="username" placeholder="Username"
-class="w-full mb-4 px-4 py-3 rounded-lg bg-white/20 placeholder-white focus:outline-none focus:ring-2 focus:ring-pink-400">
+class="w-full pl-10 pr-4 py-3 rounded-lg bg-white/20 placeholder-white focus:outline-none focus:ring-2 focus:ring-pink-400 transition">
+</div>
 
-<input type="password" name="password" placeholder="Password"
-class="w-full mb-6 px-4 py-3 rounded-lg bg-white/20 placeholder-white focus:outline-none focus:ring-2 focus:ring-pink-400">
+<div class="relative">
+<span class="absolute left-3 top-3 text-white/70">🔒</span>
+<input id="password" type="password" name="password" placeholder="Password"
+class="w-full pl-10 pr-10 py-3 rounded-lg bg-white/20 placeholder-white focus:outline-none focus:ring-2 focus:ring-pink-400 transition">
+<button type="button" onclick="togglePassword()" class="absolute right-3 top-3 text-white/70 hover:text-white">👁</button>
+</div>
 
-<button type="submit"
-class="w-full glass-btn py-3 rounded-lg font-semibold text-lg">
-Sign In
-</button>
-
+<button type="submit" class="w-full py-3 rounded-lg font-semibold text-lg bg-gradient-to-r from-pink-500 to-purple-500 hover:scale-105 hover:shadow-lg transition">Sign In</button>
 </form>
 
-<button onclick="closeLogin()" class="mt-4 text-sm text-pink-200 hover:underline">
-Cancel
-</button>
-
+<p class="text-xs text-white/70 mt-5">Laundry Lounge Management System</p>
 </div>
 </div>
 
-<footer class="absolute bottom-0 w-full text-center py-5 bg-gradient-to-r from-purple-900 to-pink-700 tracking-wide">
+<!-- WARNING MODAL -->
+<div id="errorModal">
+  <div class="modal-box">
+    <div class="text-red-500 text-5xl mb-3">⚠️</div>
+    <h2 class="text-xl font-bold mb-2">Login Failed</h2>
+    <p id="errorMessage" class="text-gray-200 mb-4"></p>
+    <button onclick="closeErrorModal()" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition">OK</button>
+  </div>
+</div>
+
+<style>
+/* Container hides overflow */
+.animated-text-container {
+  position: relative;
+  height: 80px; /* adjust based on text size */
+  overflow: hidden;
+}
+
+/* Each text span */
+.text-slide {
+  display: block;
+  position: absolute;
+  width: 100%;
+  opacity: 0;
+  top: 0;
+  left: 0;
+  color: white;
+  font-family: 'Playfair Display', serif;
+  text-shadow: 
+    0 0 10px rgba(255,255,255,0.6),
+    0 0 20px rgba(255,182,255,0.6),
+    0 0 40px rgba(255,105,180,0.6);
+  animation: slideText 9s infinite;
+}
+
+/* Animate text slides one after another */
+.text-slide:nth-child(1) { animation-delay: 0s; }
+.text-slide:nth-child(2) { animation-delay: 3s; }
+.text-slide:nth-child(3) { animation-delay: 6s; }
+
+@keyframes slideText {
+  0% { opacity: 0; transform: translateY(100%); }
+  10% { opacity: 1; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(0); }
+  40% { opacity: 0; transform: translateY(-100%); }
+  100% { opacity: 0; transform: translateY(-100%); }
+}
+
+/* Optional neon gradient like your gradient-text */
+.gradient-text {
+  background: linear-gradient(90deg,#ffffff,#f9a8d4,#c084fc,#ffffff);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: textShine 5s linear infinite;
+}
+@keyframes textShine { to { background-position:200% center; } }
+
+</style>
+
+<footer class="w-full text-center py-5 bg-gradient-to-r from-purple-900 to-pink-700 tracking-wide">
 Maharlika Highway Cojuangco, Santa Rosa Nueva Ecija
 </footer>
 
 <script>
+function openLogin(){ document.getElementById("loginModal").classList.add("active"); }
+function closeLogin(){ document.getElementById("loginModal").classList.remove("active"); }
+window.onclick = function(event){ let modal = document.getElementById("loginModal"); if(event.target === modal){ modal.classList.remove("active"); } }
+document.addEventListener("keydown", function(e){ if(e.key === "Escape"){ closeLogin(); closeErrorModal(); } });
+function togglePassword(){ let pass = document.getElementById("password"); pass.type = pass.type === "password" ? "text" : "password"; }
 
-function openLogin(){
-document.getElementById("loginModal").classList.add("active");
+function closeErrorModal(){
+  document.getElementById("errorModal").classList.remove("active");
 }
 
-function closeLogin(){
-document.getElementById("loginModal").classList.remove("active");
-}
-
-/* Close modal if clicking outside */
-window.onclick = function(event){
-let modal = document.getElementById("loginModal");
-if(event.target === modal){
-modal.classList.remove("active");
-}
-}
-
+// Show error modal if Flask flashed an "error" message
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      {% if category == 'error' %}
+        document.addEventListener("DOMContentLoaded", function() {
+          document.getElementById("errorModal").classList.add("active");
+          document.getElementById("errorMessage").innerText = "{{ message }}";
+          openLogin();
+        });
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+{% endwith %}
 </script>
 
 </body>

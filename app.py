@@ -153,7 +153,7 @@ def api_customers():
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT c.customer_id, c.full_name, c.contact_number, c.email,
+        SELECT c.customer_id, c.name, c.contact_number, c.email,
                o.transaction_id, o.order_date, o.amount, o.status
         FROM customers c
         LEFT JOIN orders o ON c.customer_id = o.customer_id
@@ -169,7 +169,7 @@ def api_customers():
         if cid not in customers_map:
             customers_map[cid] = {
                 "customer_id": cid,
-                "name": row["full_name"],
+                "name": row["name"],  # changed from 'full_name' to 'name'
                 "phone": row["contact_number"] or "-",
                 "email": row["email"] or "-",
                 "spent": float(row["amount"] or 0),
@@ -180,6 +180,7 @@ def api_customers():
         else:
             customers_map[cid]["spent"] += float(row["amount"] or 0)
             if row["order_date"]:
+                # Keep the most recent order date
                 customers_map[cid]["lastOrder"] = max(
                     customers_map[cid]["lastOrder"], row["order_date"].strftime("%Y-%m-%d"))
 
@@ -290,7 +291,7 @@ def api_orders():
 
         transaction_id = generate_order_id()
         tracking_token = generate_tracking_token()
-        tracking_url = f"http://192.168.100.113:5000/track/{tracking_token}"
+        tracking_url = f"http://192.168.1.162:5000/track/{tracking_token}"
         qr_path = os.path.join(QR_FOLDER, f"{transaction_id}.png")
         qrcode.make(tracking_url).save(qr_path)
 
