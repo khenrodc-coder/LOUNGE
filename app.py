@@ -28,7 +28,7 @@ def get_db_connection():
         host="localhost",
         user="root",
         password="",
-        database="ll_ms_db",
+        database="lll_ms_db",
         cursorclass=pymysql.cursors.DictCursor
     )
 
@@ -147,90 +147,10 @@ def customers():
     return render_template("customers.html", user=session["user"], page="customers")
 
 
-@app.route("/api/customers")
-@require_login
-def api_customers():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT c.customer_id, c.name, c.contact_number, c.email,
-               o.transaction_id, o.order_date, o.amount, o.status
-        FROM customers c
-        LEFT JOIN orders o ON c.customer_id = o.customer_id
-        ORDER BY o.order_date DESC
-    """)
-    rows = cursor.fetchall()
-    cursor.close()
-    conn.close()
-
-    customers_map = {}
-    for row in rows:
-        cid = row["customer_id"]
-        if cid not in customers_map:
-            customers_map[cid] = {
-                "customer_id": cid,
-                "name": row["name"],  # changed from 'full_name' to 'name'
-                "phone": row["contact_number"] or "-",
-                "email": row["email"] or "-",
-                "spent": float(row["amount"] or 0),
-                "lastOrder": row["order_date"].strftime("%Y-%m-%d") if row["order_date"] else "-",
-                "status": row["status"] or "Inactive",
-                "orderId": row["transaction_id"] or "-"
-            }
-        else:
-            customers_map[cid]["spent"] += float(row["amount"] or 0)
-            if row["order_date"]:
-                # Keep the most recent order date
-                customers_map[cid]["lastOrder"] = max(
-                    customers_map[cid]["lastOrder"], row["order_date"].strftime("%Y-%m-%d"))
-
-    return jsonify(list(customers_map.values()))
-
-
 @app.route("/reports")
 @require_login
 def reports():
     return render_template("reports.html", user=session["user"], page="reports")
-
-
-@app.route("/api/reports/live")
-@require_login
-def api_reports_live():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    reports = {}
-
-    # Daily Sales
-    cursor.execute(
-        "SELECT DATE(order_date) as day, SUM(amount) as total FROM orders GROUP BY DATE(order_date) ORDER BY DATE(order_date) ASC LIMIT 30")
-    daily = cursor.fetchall()
-    reports["daily"] = {"labels": [row["day"].strftime("%Y-%m-%d") for row in daily],
-                        "data": [float(row["total"]) for row in daily]}
-
-    # Weekly Sales
-    cursor.execute(
-        "SELECT WEEK(order_date) as week, SUM(amount) as total FROM orders GROUP BY WEEK(order_date) ORDER BY WEEK(order_date) ASC LIMIT 12")
-    weekly = cursor.fetchall()
-    reports["weekly"] = {"labels": [f"Week {row['week']}" for row in weekly],
-                         "data": [float(row["total"]) for row in weekly]}
-
-    # Monthly Sales
-    cursor.execute(
-        "SELECT MONTH(order_date) as month, SUM(amount) as total FROM orders GROUP BY MONTH(order_date) ORDER BY MONTH(order_date) ASC")
-    monthly = cursor.fetchall()
-    reports["monthly"] = {"labels": [f"Month {row['month']}" for row in monthly],
-                          "data": [float(row["total"]) for row in monthly]}
-
-    # Service Popularity
-    cursor.execute(
-        "SELECT service, COUNT(*) as count FROM orders GROUP BY service")
-    popularity = cursor.fetchall()
-    reports["popularity"] = {"labels": [row["service"] for row in popularity],
-                             "data": [row["count"] for row in popularity]}
-
-    cursor.close()
-    conn.close()
-    return jsonify(reports)
 
 
 @app.route("/settings")
@@ -238,8 +158,280 @@ def api_reports_live():
 def settings():
     return render_template("settings.html", user=session["user"], page="settings")
 
+
+@app.route("/api/dashboard")
+@require_login
+def api_dashboard():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # -------------------------
+        # SUMMARY STATS
+        # -------------------------
+        cursor.execute("SELECT COALESCE(SUM(amount),0) as total FROM orders")
+        total_revenue = float(cursor.fetchone()["total"])
+
+        cursor.execute(
+            "SELECT COUNT(*) as total FROM orders WHERE status != 'Completed'")
+        active_orders = cursor.fetchone()["total"]
+
+        cursor.execute("""
+            SELECT COUNT(*) as total 
+            FROM orders 
+            WHERE status IN ('New','Washing','Drying','Folding')
+        """)
+        pending_orders = cursor.fetchone()["total"]
+
+        cursor.execute(
+            "SELECT COUNT(DISTINCT customer_id) as total FROM orders")
+        total_customers = cursor.fetchone()["total"]
+
+        # -------------------------
+        # REVENUE CHART (DAILY)
+        # -------------------------
+        cursor.execute("""
+            SELECT DATE(order_date) as day, COALESCE(SUM(amount),0) as total
+            FROM orders
+            GROUP BY DATE(order_date)
+            ORDER BY day ASC
+            LIMIT 10
+        """)
+        revenue_rows = cursor.fetchall()
+
+        revenue_chart = {
+            "labels": [row["day"].strftime("%Y-%m-%d") for row in revenue_rows],
+            "data": [float(row["total"]) for row in revenue_rows]
+        }
+
+        # -------------------------
+        # ORDERS CHART (COUNT PER DAY)
+        # -------------------------
+        cursor.execute("""
+            SELECT DATE(order_date) as day, COUNT(*) as total
+            FROM orders
+            GROUP BY DATE(order_date)
+            ORDER BY day ASC
+            LIMIT 10
+        """)
+        order_rows = cursor.fetchall()
+
+        orders_chart = {
+            "labels": [row["day"].strftime("%Y-%m-%d") for row in order_rows],
+            "data": [int(row["total"]) for row in order_rows]
+        }
+
+        return jsonify({
+            "summary": {
+                "totalRevenue": total_revenue,
+                "activeOrders": active_orders,
+                "pendingOrders": pending_orders,
+                "totalCustomers": total_customers
+            },
+            "charts": {
+                "revenue": revenue_chart,
+                "orders": orders_chart
+            }
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        cursor.close()
+        conn.close()
+
 # -----------------------
-# QR TRACKING (Customer)
+# API - CUSTOMERS
+# -----------------------
+
+
+@app.route("/api/customers")
+@require_login
+def api_customers():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT c.customer_id, c.name, c.contact_number,
+                   o.transaction_id, o.order_date, o.amount, o.status
+            FROM customers c
+            LEFT JOIN orders o ON c.customer_id = o.customer_id
+            ORDER BY o.order_date DESC
+        """)
+        rows = cursor.fetchall()
+
+        customers_map = {}
+        for row in rows:
+            cid = row["customer_id"]
+            if cid not in customers_map:
+                customers_map[cid] = {
+                    "customer_id": cid,
+                    "name": row["name"],
+                    "phone": row["contact_number"] or "-",
+                    "spent": float(row["amount"] or 0),
+                    "lastOrder": row["order_date"].strftime("%Y-%m-%d") if row["order_date"] else "-",
+                    "status": "Active" if row["order_date"] else "Inactive",
+                    "orderId": row["transaction_id"] or "-"
+                }
+            else:
+                customers_map[cid]["spent"] += float(row["amount"] or 0)
+                if row["order_date"]:
+                    if customers_map[cid]["lastOrder"] == "-" or row["order_date"] > datetime.strptime(customers_map[cid]["lastOrder"], "%Y-%m-%d"):
+                        customers_map[cid]["lastOrder"] = row["order_date"].strftime(
+                            "%Y-%m-%d")
+                        customers_map[cid]["orderId"] = row["transaction_id"] or "-"
+
+        return jsonify(list(customers_map.values()))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+# -----------------------
+# API - ORDERS (POST/GET)
+# -----------------------
+
+
+@app.route("/api/orders", methods=["GET", "POST"])
+@require_login
+def api_orders():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        if request.method == "POST":
+            if not request.is_json:
+                return jsonify({"error": "Request must be JSON"}), 400
+
+            data = request.get_json()
+            required_fields = ("name", "service", "weight",
+                               "amount", "contact")
+            if not all(field in data and data[field] for field in required_fields):
+                return jsonify({"error": "Missing required fields"}), 400
+
+            weight = parse_weight(data["weight"])
+            if weight is None:
+                return jsonify({"error": "Invalid weight format"}), 400
+
+            try:
+                amount = float(data["amount"])
+            except ValueError:
+                return jsonify({"error": "Amount must be numeric"}), 400
+
+            contact = data["contact"].strip()
+
+            # Check or create customer
+            cursor.execute(
+                "SELECT customer_id FROM customers WHERE contact_number=%s", (contact,))
+            customer = cursor.fetchone()
+            if customer:
+                customer_id = customer["customer_id"]
+            else:
+                cursor.execute(
+                    "INSERT INTO customers (name, contact_number) VALUES (%s, %s)", (data["name"], contact))
+                conn.commit()
+                customer_id = cursor.lastrowid
+
+            # Create order
+            transaction_id = generate_order_id()
+            tracking_token = generate_tracking_token()
+            tracking_url = f"http://192.168.1.221:5000/track/{tracking_token}"
+            qr_path = os.path.join(QR_FOLDER, f"{transaction_id}.png")
+            qrcode.make(tracking_url).save(qr_path)
+
+            order_date = datetime.now()
+            pickup_date = order_date + timedelta(days=2)
+
+            cursor.execute("""
+                INSERT INTO orders
+                (customer_id, transaction_id, tracking_token, tracking_url, qr_code_path, name, service, weight, order_date, pickup_date, status, amount, contact, payment_method)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            """, (
+                customer_id, transaction_id, tracking_token, tracking_url, f"/static/qrcodes/{transaction_id}.png",
+                data["name"], data["service"], weight, order_date, pickup_date, "New",
+                amount, contact, data.get("payment")
+            ))
+            conn.commit()
+            log_activity(
+                f"Order {transaction_id} created for customer {customer_id}")
+
+            return jsonify(map_order({
+                "transaction_id": transaction_id,
+                "tracking_token": tracking_token,
+                "tracking_url": tracking_url,
+                "qr_code_path": f"/static/qrcodes/{transaction_id}.png",
+                "name": data["name"],
+                "service": data["service"],
+                "weight": weight,
+                "amount": amount,
+                "contact": contact,
+                "payment_method": data.get("payment"),
+                "order_date": order_date,
+                "pickup_date": pickup_date,
+                "status": "New"
+            })), 201
+
+        # GET all orders
+        cursor.execute("SELECT * FROM orders ORDER BY order_date DESC")
+        orders = cursor.fetchall()
+        return jsonify([map_order(o) for o in orders])
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+# -----------------------
+# API - SINGLE ORDER (GET/PATCH/DELETE)
+# -----------------------
+
+
+@app.route("/api/orders/<transaction_id>", methods=["GET", "PATCH", "DELETE"])
+@require_login
+def api_order_detail(transaction_id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT * FROM orders WHERE transaction_id=%s", (transaction_id,))
+        order = cursor.fetchone()
+
+        if not order:
+            return jsonify({"error": "Order not found"}), 404
+
+        if request.method == "GET":
+            return jsonify(map_order(order))
+
+        if request.method == "PATCH":
+            data = request.get_json()
+            if "status" not in data:
+                return jsonify({"error": "Missing status"}), 400
+            cursor.execute("UPDATE orders SET status=%s WHERE transaction_id=%s",
+                           (data["status"], transaction_id))
+            conn.commit()
+            log_activity(
+                f"Order {transaction_id} status updated to {data['status']}")
+            return jsonify({"success": True})
+
+        if request.method == "DELETE":
+            cursor.execute(
+                "DELETE FROM orders WHERE transaction_id=%s", (transaction_id,))
+            conn.commit()
+            log_activity(f"Order {transaction_id} deleted")
+            return jsonify({"success": True})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+# -----------------------
+# QR TRACKING
 # -----------------------
 
 
@@ -268,120 +460,92 @@ def api_track(token):
         return jsonify({"error": "order not found"}), 404
     return jsonify(map_order(order))
 
-# -----------------------
-# ORDERS API (Admin Only)
-# -----------------------
 
-
-@app.route("/api/orders", methods=["GET", "POST"])
+@app.route("/api/reports/live")
 @require_login
-def api_orders():
-    conn = get_db_connection()
-    cursor = conn.cursor()
+def api_reports_live():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        reports = {}
 
-    if request.method == "POST":
-        data = request.json
-        required = ("name", "service", "weight", "amount")
-        if not all(k in data for k in required):
-            return jsonify({"error": "missing fields"}), 400
-
-        weight = parse_weight(data["weight"])
-        if weight is None:
-            return jsonify({"error": "Invalid weight format"}), 400
-
-        transaction_id = generate_order_id()
-        tracking_token = generate_tracking_token()
-        tracking_url = f"http://192.168.1.162:5000/track/{tracking_token}"
-        qr_path = os.path.join(QR_FOLDER, f"{transaction_id}.png")
-        qrcode.make(tracking_url).save(qr_path)
-
-        order_date = datetime.now()
-        pickup_date = datetime.now() + timedelta(days=2)  # default pickup
-
+        # -------------------------
+        # DAILY SALES (last 7 days)
+        # -------------------------
         cursor.execute("""
-            INSERT INTO orders
-            (transaction_id, tracking_token, tracking_url, qr_code_path, name, service, weight, order_date, pickup_date, status, amount, contact, payment_method)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-        """, (
-            transaction_id, tracking_token, tracking_url, f"/static/qrcodes/{transaction_id}.png",
-            data["name"], data["service"], weight, order_date, pickup_date, "New",
-            float(data["amount"]), data.get("contact"), data.get("payment")
-        ))
-        conn.commit()
+            SELECT DATE(order_date) as day, COALESCE(SUM(amount),0) as total
+            FROM orders
+            GROUP BY DATE(order_date)
+            ORDER BY day DESC
+            LIMIT 7
+        """)
+        daily = cursor.fetchall()
+        daily.reverse()
+
+        reports["daily"] = {
+            "labels": [row["day"].strftime("%Y-%m-%d") for row in daily],
+            "data": [float(row["total"]) for row in daily]
+        }
+
+        # -------------------------
+        # WEEKLY SALES (FIXED)
+        # -------------------------
+        cursor.execute("""
+            SELECT YEAR(order_date) as year, WEEK(order_date) as week, COALESCE(SUM(amount),0) as total
+            FROM orders
+            GROUP BY YEAR(order_date), WEEK(order_date)
+            ORDER BY year DESC, week DESC
+            LIMIT 6
+        """)
+        weekly = cursor.fetchall()
+        weekly.reverse()
+
+        reports["weekly"] = {
+            "labels": [f"{row['year']} - Week {row['week']}" for row in weekly],
+            "data": [float(row["total"]) for row in weekly]
+        }
+
+        # -------------------------
+        # MONTHLY SALES (FIXED)
+        # -------------------------
+        cursor.execute("""
+            SELECT YEAR(order_date) as year, MONTH(order_date) as month, COALESCE(SUM(amount),0) as total
+            FROM orders
+            GROUP BY YEAR(order_date), MONTH(order_date)
+            ORDER BY year DESC, month DESC
+            LIMIT 6
+        """)
+        monthly = cursor.fetchall()
+        monthly.reverse()
+
+        reports["monthly"] = {
+            "labels": [f"{row['year']}-{str(row['month']).zfill(2)}" for row in monthly],
+            "data": [float(row["total"]) for row in monthly]
+        }
+
+        # -------------------------
+        # SERVICE POPULARITY
+        # -------------------------
+        cursor.execute("""
+            SELECT service, COUNT(*) as count
+            FROM orders
+            GROUP BY service
+        """)
+        popularity = cursor.fetchall()
+
+        reports["popularity"] = {
+            "labels": [row["service"] for row in popularity],
+            "data": [int(row["count"]) for row in popularity]
+        }
+
+        return jsonify(reports)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    finally:
         cursor.close()
         conn.close()
-        log_activity(f"Order {transaction_id} created")
-
-        return jsonify(map_order({
-            "transaction_id": transaction_id,
-            "tracking_token": tracking_token,
-            "tracking_url": tracking_url,
-            "qr_code_path": f"/static/qrcodes/{transaction_id}.png",
-            "name": data["name"],
-            "service": data["service"],
-            "weight": weight,
-            "amount": float(data["amount"]),
-            "contact": data.get("contact"),
-            "payment_method": data.get("payment"),
-            "order_date": order_date,
-            "pickup_date": pickup_date,
-            "status": "New"
-        })), 201
-
-    # GET all orders
-    cursor.execute("SELECT * FROM orders")
-    orders = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return jsonify([map_order(o) for o in orders])
-
-# -----------------------
-# SINGLE ORDER API (PATCH/DELETE)
-# -----------------------
-
-
-@app.route("/api/orders/<transaction_id>", methods=["GET", "PATCH", "DELETE"])
-@require_login
-def api_order_detail(transaction_id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "SELECT * FROM orders WHERE transaction_id=%s", (transaction_id,))
-    order = cursor.fetchone()
-
-    if not order:
-        cursor.close()
-        conn.close()
-        return jsonify({"error": "Order not found"}), 404
-
-    if request.method == "GET":
-        cursor.close()
-        conn.close()
-        return jsonify(map_order(order))
-
-    if request.method == "PATCH":
-        data = request.json
-        if "status" not in data:
-            cursor.close()
-            conn.close()
-            return jsonify({"error": "Missing status"}), 400
-        cursor.execute("UPDATE orders SET status=%s WHERE transaction_id=%s",
-                       (data["status"], transaction_id))
-        conn.commit()
-        cursor.close()
-        conn.close()
-        log_activity(
-            f"Order {transaction_id} status updated to {data['status']}")
-        return jsonify({"success": True})
-
-    if request.method == "DELETE":
-        cursor.execute(
-            "DELETE FROM orders WHERE transaction_id=%s", (transaction_id,))
-        conn.commit()
-        cursor.close()
-        conn.close()
-        log_activity(f"Order {transaction_id} deleted")
-        return jsonify({"success": True})
 
 
 # -----------------------

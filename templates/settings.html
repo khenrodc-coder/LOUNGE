@@ -117,53 +117,9 @@ h1,h2,h3{ font-family:'Poppins',sans-serif; }
 <p class="text-white/70 text-sm mt-2">Manage your admin preferences</p>
 </div>
 
-<!-- SETTINGS CARDS -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-  <!-- Change Password -->
-  <div class="glass p-6 rounded-2xl shadow-lg">
-    <h3 class="text-2xl font-bold mb-4 text-white">Change Password</h3>
-    <form id="changePasswordForm" class="flex flex-col gap-3 text-black">
-      <input id="currentPassword" type="password" placeholder="Current Password" class="px-4 py-2 rounded-xl focus:outline-none" required>
-      <input id="newPassword" type="password" placeholder="New Password" class="px-4 py-2 rounded-xl focus:outline-none" required>
-      <input id="confirmPassword" type="password" placeholder="Confirm New Password" class="px-4 py-2 rounded-xl focus:outline-none" required>
-      <button type="submit" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-400 transition">Update Password</button>
-    </form>
-  </div>
 
-  <!-- Profile Info -->
-  <div class="glass p-6 rounded-2xl shadow-lg">
-    <h3 class="text-2xl font-bold mb-4 text-white">Profile Info</h3>
-    <form id="updateProfileForm" class="flex flex-col gap-3 text-black">
-      <input id="fullName" type="text" placeholder="Full Name" class="px-4 py-2 rounded-xl focus:outline-none">
-      <input id="username" type="text" placeholder="Username" class="px-4 py-2 rounded-xl focus:outline-none">
-      <button type="submit" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-400 transition">Update Profile</button>
-    </form>
-  </div>
-
-  <!-- Notifications -->
-  <div class="glass p-6 rounded-2xl shadow-lg">
-    <h3 class="text-2xl font-bold mb-4 text-white">Notifications</h3>
-    <div class="flex flex-col gap-3 text-black">
-      <label class="flex items-center gap-3">
-        <input id="emailNotif" type="checkbox" class="accent-blue-500"> Email Notifications
-      </label>
-      <label class="flex items-center gap-3">
-        <input id="smsNotif" type="checkbox" class="accent-blue-500"> SMS Notifications
-      </label>
-      <button id="updateNotif" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-400 transition">Save Settings</button>
-    </div>
-  </div>
-
-  <!-- Activity Log -->
-  <div class="glass p-6 rounded-2xl shadow-lg flex flex-col justify-between">
-    <h3 class="text-2xl font-bold mb-4 text-white">Activity Log</h3>
-    <ul id="activityLog" class="text-white/70 text-sm mb-4 max-h-48 overflow-y-auto"></ul>
-    <button id="viewLogBtn" class="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-400 transition">Refresh Log</button>
-  </div>
-
-</div>
-</div>
+  
 
 <script>
 // ------------------ Bubble Generator ------------------
@@ -185,83 +141,139 @@ setInterval(createBubble,700);
 // ------------------ Sidebar ------------------
 const sidebar = document.getElementById('sidebar');
 const overlay = document.getElementById('overlay');
-document.getElementById('openSidebar').onclick = () => {sidebar.classList.remove('-translate-x-full'); overlay.classList.remove('hidden');};
-document.getElementById('closeSidebar').onclick = () => {sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden');};
-overlay.onclick = () => {sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden');};
+document.getElementById('openSidebar').onclick = () => {
+    sidebar.classList.remove('-translate-x-full');
+    overlay.classList.remove('hidden');
+};
+document.getElementById('closeSidebar').onclick = () => {
+    sidebar.classList.add('-translate-x-full');
+    overlay.classList.add('hidden');
+};
+overlay.onclick = () => {
+    sidebar.classList.add('-translate-x-full');
+    overlay.classList.add('hidden');
+};
 
 // ------------------ Dark Mode ------------------
 function toggleDark(){
     document.documentElement.classList.toggle('dark');
-    localStorage.setItem('theme', document.documentElement.classList.contains('dark')?'dark':'light');
+    localStorage.setItem(
+        'theme',
+        document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+    );
 }
-if(localStorage.getItem('theme')==='dark'){document.documentElement.classList.add('dark');}
+if(localStorage.getItem('theme')==='dark'){
+    document.documentElement.classList.add('dark');
+}
 
-// ------------------ Admin Settings Fetch ------------------
+// ------------------ SETTINGS ------------------
 async function fetchNotifications(){
     const res = await fetch('/api/admin/notifications');
     const data = await res.json();
     document.getElementById('emailNotif').checked = data.email;
     document.getElementById('smsNotif').checked = data.sms;
 }
+
+// 🔥 Activity Log (LOAD ONLY WHEN CLICKED)
+let logLoaded = false;
+
 async function fetchActivityLog(){
-    const res = await fetch('/api/admin/log');
-    const data = await res.json();
     const ul = document.getElementById('activityLog');
-    ul.innerHTML = '';
-    data.slice().reverse().forEach(item=>{
-        const li = document.createElement('li');
-        li.textContent = item;
-        ul.appendChild(li);
-    });
+
+    // Prevent reloading if already loaded
+    if(logLoaded) return;
+
+    ul.innerHTML = "<li>Loading...</li>";
+
+    try{
+        const res = await fetch('/api/admin/log');
+        const data = await res.json();
+
+        ul.innerHTML = '';
+
+        if(data.length === 0){
+            ul.innerHTML = "<li>No activity yet.</li>";
+            return;
+        }
+
+        data.slice().reverse().forEach(item=>{
+            const li = document.createElement('li');
+            li.textContent = item;
+            ul.appendChild(li);
+        });
+
+        logLoaded = true;
+
+    }catch(err){
+        ul.innerHTML = "<li>Error loading activity log.</li>";
+    }
 }
+
+// Load notifications only (lightweight)
 fetchNotifications();
-fetchActivityLog();
+
+// ------------------ BUTTON: Load Logs ------------------
+document.getElementById('viewLogBtn').onclick = fetchActivityLog;
 
 // ------------------ Form Submissions ------------------
 document.getElementById('changePasswordForm').onsubmit = async (e)=>{
     e.preventDefault();
+
     const current = document.getElementById('currentPassword').value;
     const newPass = document.getElementById('newPassword').value;
     const confirm = document.getElementById('confirmPassword').value;
+
     const res = await fetch('/api/admin/change_password',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify({current,new:newPass,confirm})
     });
+
     const data = await res.json();
     alert(data.message || data.error);
-    if(data.message) { fetchActivityLog(); e.target.reset(); }
+
+    if(data.message){
+        logLoaded = false; // allow reload next time
+        e.target.reset();
+    }
 };
 
 document.getElementById('updateProfileForm').onsubmit = async (e)=>{
     e.preventDefault();
+
     const full_name = document.getElementById('fullName').value;
     const username = document.getElementById('username').value;
+
     const res = await fetch('/api/admin/update_profile',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify({full_name,username})
     });
+
     const data = await res.json();
     alert(data.message || data.error);
-    if(data.user) { document.getElementById('adminUser').textContent = data.user; fetchActivityLog(); }
+
+    if(data.user){
+        document.getElementById('adminUser').textContent = data.user;
+        logLoaded = false;
+    }
 };
 
 document.getElementById('updateNotif').onclick = async ()=>{
     const email = document.getElementById('emailNotif').checked;
     const sms = document.getElementById('smsNotif').checked;
+
     const res = await fetch('/api/admin/notifications',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify({email,sms})
     });
+
     const data = await res.json();
     alert(data.message || data.error);
-    fetchActivityLog();
+
+    logLoaded = false;
 };
-
-document.getElementById('viewLogBtn').onclick = fetchActivityLog;
 </script>
-
 </body>
 </html>

@@ -165,7 +165,7 @@ async function fetchDashboardData() {
         document.getElementById('pendingOrders').innerText = pendingOrders;
         document.getElementById('totalCustomers').innerText = totalCustomers;
 
-        // Update charts
+        // Update charts    
         fetchReportData(orders);
 
     } catch (err) {
@@ -175,29 +175,79 @@ async function fetchDashboardData() {
 
 // ------------------ Charts ------------------
 let revenueChart, ordersChart;
+
 function fetchReportData(orders) {
-    const labels = [...new Set(orders.map(o => o.order_date))].sort(); // use real DB date field
-    const revenueData = labels.map(date => 
-        orders.filter(o => o.order_date === date).reduce((sum, o) => sum + parseFloat(o.amount || 0), 0)
+
+    // ✅ FIX: use "date" instead of "order_date"
+    const labels = [...new Set(orders.map(o => o.date))].sort();
+
+    const revenueData = labels.map(date =>
+        orders
+            .filter(o => o.date === date)
+            .reduce((sum, o) => sum + parseFloat(o.amount || 0), 0)
     );
-    const ordersData = labels.map(date => orders.filter(o => o.order_date === date).length);
+
+    const ordersData = labels.map(date =>
+        orders.filter(o => o.date === date).length
+    );
 
     const ctxRevenue = document.getElementById('revenueChart').getContext('2d');
     const ctxOrders = document.getElementById('ordersChart').getContext('2d');
 
-    if(revenueChart) revenueChart.destroy();
-    if(ordersChart) ordersChart.destroy();
+    if (revenueChart) revenueChart.destroy();
+    if (ordersChart) ordersChart.destroy();
 
+    // ✅ Revenue Chart (Line)
     revenueChart = new Chart(ctxRevenue, {
-        type:'line',
-        data:{ labels, datasets:[{data: revenueData, borderColor:'#fff', backgroundColor:'rgba(255,255,255,0.2)', fill:true, tension:0.4}]},
-        options:{plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#fff'}}, y:{ticks:{color:'#fff'}}}}
+        type: 'line',
+        data: {
+            labels,
+            datasets: [{
+                label: "Revenue",
+                data: revenueData,
+                borderColor: '#fff',
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    display: true, // ✅ show indicator
+                    labels: { color: '#fff' }
+                }
+            },
+            scales: {
+                x: { ticks: { color: '#fff' } },
+                y: { ticks: { color: '#fff' } }
+            }
+        }
     });
 
+    // ✅ Orders Chart (Bar)
     ordersChart = new Chart(ctxOrders, {
-        type:'bar',
-        data:{ labels, datasets:[{data: ordersData, backgroundColor:'rgba(255,255,255,0.6)'}]},
-        options:{plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#fff'}}, y:{ticks:{color:'#fff'}}}}
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: "Orders",
+                data: ordersData,
+                backgroundColor: 'rgba(255,255,255,0.6)'
+            }]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    display: true, // ✅ show indicator
+                    labels: { color: '#fff' }
+                }
+            },
+            scales: {
+                x: { ticks: { color: '#fff' } },
+                y: { ticks: { color: '#fff' } }
+            }
+        }
     });
 }
 
