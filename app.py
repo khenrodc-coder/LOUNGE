@@ -547,6 +547,37 @@ def api_reports_live():
         cursor.close()
         conn.close()
 
+# -----------------------
+# API - ACTIVITY LOG
+# -----------------------
+
+
+@app.route("/api/admin/log")
+@require_login
+def api_activity_log():
+    """
+    Returns a JSON list of activity logs for the admin panel.
+    """
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "SELECT action FROM activity_logs ORDER BY id DESC LIMIT 100")
+        logs = cursor.fetchall()
+
+        # Convert rows to a simple list of strings
+        log_list = [row["action"] for row in logs]
+
+        return jsonify(log_list)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        cursor.close()
+        conn.close()
+
 
 # -----------------------
 # RUN APP

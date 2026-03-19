@@ -117,9 +117,14 @@ h1,h2,h3{ font-family:'Poppins',sans-serif; }
 <p class="text-white/70 text-sm mt-2">Manage your admin preferences</p>
 </div>
 
+<!-- Activity Log -->
+<div class="glass p-6 rounded-2xl shadow-lg flex flex-col justify-between">
+    <h3 class="text-2xl font-bold mb-4 text-white">Activity Log</h3>
+    <ul id="activityLog" class="text-white/70 text-sm mb-4 max-h-48 overflow-y-auto"></ul>
+    <button id="viewLogBtn" class="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-400 transition">Load Activity Log</button>
+</div>
 
-
-  
+</div>
 
 <script>
 // ------------------ Bubble Generator ------------------
@@ -166,114 +171,31 @@ if(localStorage.getItem('theme')==='dark'){
     document.documentElement.classList.add('dark');
 }
 
-// ------------------ SETTINGS ------------------
-async function fetchNotifications(){
-    const res = await fetch('/api/admin/notifications');
-    const data = await res.json();
-    document.getElementById('emailNotif').checked = data.email;
-    document.getElementById('smsNotif').checked = data.sms;
-}
-
-// 🔥 Activity Log (LOAD ONLY WHEN CLICKED)
+// ------------------ Activity Log ------------------
 let logLoaded = false;
-
 async function fetchActivityLog(){
-    const ul = document.getElementById('activityLog');
-
-    // Prevent reloading if already loaded
     if(logLoaded) return;
-
+    const ul = document.getElementById('activityLog');
     ul.innerHTML = "<li>Loading...</li>";
-
     try{
         const res = await fetch('/api/admin/log');
         const data = await res.json();
-
         ul.innerHTML = '';
-
         if(data.length === 0){
             ul.innerHTML = "<li>No activity yet.</li>";
             return;
         }
-
         data.slice().reverse().forEach(item=>{
             const li = document.createElement('li');
             li.textContent = item;
             ul.appendChild(li);
         });
-
         logLoaded = true;
-
     }catch(err){
         ul.innerHTML = "<li>Error loading activity log.</li>";
     }
 }
-
-// Load notifications only (lightweight)
-fetchNotifications();
-
-// ------------------ BUTTON: Load Logs ------------------
 document.getElementById('viewLogBtn').onclick = fetchActivityLog;
-
-// ------------------ Form Submissions ------------------
-document.getElementById('changePasswordForm').onsubmit = async (e)=>{
-    e.preventDefault();
-
-    const current = document.getElementById('currentPassword').value;
-    const newPass = document.getElementById('newPassword').value;
-    const confirm = document.getElementById('confirmPassword').value;
-
-    const res = await fetch('/api/admin/change_password',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({current,new:newPass,confirm})
-    });
-
-    const data = await res.json();
-    alert(data.message || data.error);
-
-    if(data.message){
-        logLoaded = false; // allow reload next time
-        e.target.reset();
-    }
-};
-
-document.getElementById('updateProfileForm').onsubmit = async (e)=>{
-    e.preventDefault();
-
-    const full_name = document.getElementById('fullName').value;
-    const username = document.getElementById('username').value;
-
-    const res = await fetch('/api/admin/update_profile',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({full_name,username})
-    });
-
-    const data = await res.json();
-    alert(data.message || data.error);
-
-    if(data.user){
-        document.getElementById('adminUser').textContent = data.user;
-        logLoaded = false;
-    }
-};
-
-document.getElementById('updateNotif').onclick = async ()=>{
-    const email = document.getElementById('emailNotif').checked;
-    const sms = document.getElementById('smsNotif').checked;
-
-    const res = await fetch('/api/admin/notifications',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({email,sms})
-    });
-
-    const data = await res.json();
-    alert(data.message || data.error);
-
-    logLoaded = false;
-};
 </script>
 </body>
 </html>
