@@ -1,201 +1,666 @@
 <!DOCTYPE html>
-<html lang="en" class="transition duration-300">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LOUNGE Admin Settings</title>
+<title>LOUNGE — Settings</title>
 
-<script src="https://cdn.tailwindcss.com"></script>
-<script> tailwind.config = { darkMode: 'class' } </script>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
-body{ font-family:'DM Sans',sans-serif; overflow-x:hidden; }
-h1,h2,h3{ font-family:'Poppins',sans-serif; }
+/* ─── RESET ─────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* Glass Effect */
-.glass{
-    background: rgba(255,255,255,0.25);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(255,255,255,0.3);
-    transition: box-shadow 0.3s, transform 0.3s;
+/* ─── THEME TOKENS ───────────────────────── */
+:root {
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.glass:hover{
-    box-shadow: 0 0 20px rgba(255,255,255,0.5);
-    transform: translateY(-3px);
+[data-theme="light"] {
+  --bg:          #F4EFE6;
+  --bg-alt:      #EDE7DB;
+  --surface:     rgba(255,255,255,0.72);
+  --surface-hov: rgba(255,255,255,0.9);
+  --border:      rgba(0,0,0,0.10);
+  --border-acc:  rgba(196,79,31,0.4);
+  --text:        #1A1309;
+  --text-2:      #5A4E3A;
+  --text-3:      rgba(90,78,58,0.55);
+  --accent:      #C44F1F;
+  --accent-2:    #3E6B45;
+  --accent-glow: rgba(196,79,31,0.22);
+  --mark-bg:     #C44F1F;
+  --mark-text:   #fff;
+  --shadow:      0 20px 60px rgba(60,30,0,0.12), 0 4px 20px rgba(60,30,0,0.06);
+  --shadow-sm:   0 4px 16px rgba(60,30,0,0.08);
+  --deco-op:     0.05;
+  --toggle-bg:   rgba(0,0,0,0.06);
+  --sidebar-bg:  rgba(255,255,255,0.82);
+  --overlay-bg:  rgba(30,20,10,0.4);
+  --input-bg:    rgba(255,255,255,0.85);
+  --input-text:  #1A1309;
+  --bubble-a:    rgba(196,79,31,0.15);
+  --bubble-b:    rgba(196,79,31,0.04);
+  --th-bg:       rgba(196,79,31,0.08);
+  --divider:     rgba(0,0,0,0.07);
+  --log-stripe:  rgba(196,79,31,0.04);
 }
-.dark .glass{
-    background: rgba(30,41,59,0.35);
-    border: 1px solid rgba(255,255,255,0.08);
+[data-theme="dark"] {
+  --bg:          #100E0A;
+  --bg-alt:      #1A1610;
+  --surface:     rgba(30,25,18,0.82);
+  --surface-hov: rgba(40,34,24,0.92);
+  --border:      rgba(255,255,255,0.09);
+  --border-acc:  rgba(232,110,50,0.45);
+  --text:        #F0E8D8;
+  --text-2:      #B0A088;
+  --text-3:      rgba(176,160,136,0.55);
+  --accent:      #E8703A;
+  --accent-2:    #74BF82;
+  --accent-glow: rgba(232,112,58,0.3);
+  --mark-bg:     #E8703A;
+  --mark-text:   #fff;
+  --shadow:      0 20px 60px rgba(0,0,0,0.55), 0 4px 20px rgba(0,0,0,0.3);
+  --shadow-sm:   0 4px 16px rgba(0,0,0,0.35);
+  --deco-op:     0.04;
+  --toggle-bg:   rgba(255,255,255,0.09);
+  --sidebar-bg:  rgba(16,12,8,0.94);
+  --overlay-bg:  rgba(0,0,0,0.58);
+  --input-bg:    rgba(255,255,255,0.07);
+  --input-text:  #F0E8D8;
+  --bubble-a:    rgba(232,112,58,0.12);
+  --bubble-b:    rgba(232,112,58,0.03);
+  --th-bg:       rgba(232,112,58,0.08);
+  --divider:     rgba(255,255,255,0.07);
+  --log-stripe:  rgba(232,112,58,0.04);
 }
 
-/* Bubble Background */
-.bubbles{
-    position: fixed;
-    inset: 0;
-    overflow: hidden;
-    z-index: 0;
-    pointer-events: none;
-}
-.bubble{
-    position: absolute;
-    bottom: -150px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(255,255,255,0.4) 40%, rgba(255,255,255,0.2) 60%, transparent 70%);
-    animation: floatUp linear infinite;
-    opacity: 0.6;
-    backdrop-filter: blur(4px);
-}
-@keyframes floatUp{
-    0%{ transform: translateY(0) scale(1); opacity: 0; }
-    10%{ opacity: 0.6; }
-    90%{ opacity: 0.6; }
-    100%{ transform: translateY(-120vh) scale(1.2); opacity: 0; }
+/* ─── BASE ──────────────────────────────── */
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background 0.4s ease, color 0.4s ease;
+  padding-bottom: 34px;
 }
 
-/* Decorative Lines & Circles */
-.decorative-line { position: absolute; width: 2px; height: 150px; background: linear-gradient(to bottom, rgba(255,255,255,0.5), transparent); transform: rotate(25deg); opacity:0.3; z-index:0; pointer-events:none; }
-.decorative-line.reverse { transform: rotate(-25deg); }
-.decorative-circle { position:absolute; width:100px; height:100px; border-radius:50%; background:rgba(255,255,255,0.1); box-shadow:0 0 20px rgba(255,255,255,0.2); z-index:0; pointer-events:none; }
+/* ─── GLASS ─────────────────────────────── */
+.glass {
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.3s, transform 0.3s, background 0.4s, border-color 0.4s;
+}
+.glass:hover { box-shadow: var(--shadow); border-color: var(--border-acc); background: var(--surface-hov); }
+@media (hover: none) { .glass { transform: none !important; } }
+
+.corner-acc {
+  position: absolute; top: -1px; right: -1px;
+  width: 44px; height: 44px;
+  border-top: 2px solid var(--accent);
+  border-right: 2px solid var(--accent);
+  border-radius: 0 16px 0 0;
+  opacity: 0.45; pointer-events: none;
+  transition: opacity 0.2s;
+}
+.glass:hover .corner-acc { opacity: 1; }
+
+/* ─── DECO BG ───────────────────────────── */
+.deco-bg { pointer-events: none; position: fixed; inset: 0; overflow: hidden; z-index: 0; }
+.deco-word {
+  font-family: 'Playfair Display', serif; font-weight: 900;
+  font-size: clamp(6rem, 18vw, 20rem); line-height: 0.82;
+  color: var(--text); opacity: var(--deco-op); position: absolute;
+  white-space: nowrap; user-select: none; letter-spacing: -0.04em; transition: opacity 0.4s;
+}
+.deco-word.w1 { top: -4%; left: -3%; transform: rotate(-3deg); }
+.deco-word.w2 { bottom: 0; right: -4%; transform: rotate(2deg); font-style: italic; }
+@media (max-width: 600px) { .deco-word { display: none; } }
+
+/* ─── BUBBLES ───────────────────────────── */
+.bubbles { position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+.bubble {
+  position: absolute; bottom: -150px; border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, var(--bubble-a), var(--bubble-b) 60%, transparent 80%);
+  border: 1px solid var(--border-acc);
+  animation: floatUp linear infinite; opacity: 0;
+}
+@keyframes floatUp {
+  0%   { transform: translateY(0) scale(1); opacity: 0; }
+  10%  { opacity: 0.55; }
+  90%  { opacity: 0.2; }
+  100% { transform: translateY(-115vh) scale(1.3); opacity: 0; }
+}
+
+/* ─── SIDEBAR ───────────────────────────── */
+#sidebar {
+  position: fixed; top: 0; left: 0; height: 100%;
+  width: 256px; z-index: 40;
+  transform: translateX(-100%);
+  display: flex; flex-direction: column; justify-content: space-between;
+  overflow-y: auto; overscroll-behavior: contain;
+  background: var(--sidebar-bg);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border-right: 1px solid var(--border);
+  padding: 1.5rem 1.25rem;
+  transition: transform 0.3s var(--ease-expo), background 0.4s, border-color 0.4s;
+}
+#sidebar.open { transform: translateX(0); }
+
+.sb-eyebrow { font-family: 'DM Mono', monospace; font-size: 0.58rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+.sb-name { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.45rem; color: var(--text); line-height: 1; letter-spacing: -0.01em; transition: color 0.4s; }
+.sb-name span { font-style: italic; font-weight: 400; color: var(--accent); }
+
+.nav-link {
+  display: flex; align-items: center; gap: 11px;
+  padding: 10px 13px; border-radius: 10px;
+  font-size: 0.86rem; font-weight: 500;
+  color: var(--text-2); border: 1px solid transparent;
+  text-decoration: none; min-height: 44px;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-link:hover, .nav-link.active { background: var(--surface-hov); color: var(--text); border-color: var(--border-acc); }
+.nav-link.active { color: var(--accent); }
+
+.sb-user { padding-top: 1rem; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 3px; }
+.sb-uname { font-size: 0.85rem; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-uemail { font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em; color: var(--text-3); }
+.sb-logout {
+  margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 10px 16px; border-radius: 10px;
+  background: rgba(220,60,60,0.10); color: #DC3C3C;
+  border: 1px solid rgba(220,60,60,0.25);
+  font-family: 'DM Mono', monospace; font-size: 0.66rem;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  text-decoration: none; min-height: 44px;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.sb-logout:hover { background: rgba(220,60,60,0.20); border-color: rgba(220,60,60,0.5); transform: translateY(-1px); }
+
+#closeSidebar {
+  width: 34px; height: 34px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--toggle-bg);
+  color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem; transition: border-color 0.2s;
+  flex-shrink: 0; -webkit-tap-highlight-color: transparent;
+}
+#closeSidebar:hover { border-color: var(--accent); }
+
+/* ─── OVERLAY ───────────────────────────── */
+#overlay { position: fixed; inset: 0; background: var(--overlay-bg); backdrop-filter: blur(4px); z-index: 30; display: none; }
+#overlay.visible { display: block; }
+
+/* ─── MAIN ──────────────────────────────── */
+#main {
+  position: relative; z-index: 10;
+  padding: clamp(1rem, 4vw, 2.5rem);
+  min-height: 100vh;
+  transition: margin-left 0.3s var(--ease-expo);
+}
+@media (min-width: 1024px) { #main.sidebar-open { margin-left: 256px; } }
+
+/* ─── TOPBAR ────────────────────────────── */
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: clamp(1rem, 3.5vw, 1.75rem); gap: 12px; }
+#openSidebar {
+  width: 44px; height: 44px; border-radius: 10px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; flex-shrink: 0;
+  transition: border-color 0.2s, transform 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+#openSidebar:hover { border-color: var(--accent); transform: scale(1.05); }
+
+#themeToggle {
+  display: flex; align-items: center; gap: 7px;
+  padding: 10px 15px; border-radius: 30px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); cursor: pointer; white-space: nowrap;
+  font-family: 'DM Mono', monospace; font-size: 0.66rem;
+  letter-spacing: 0.15em; text-transform: uppercase; min-height: 44px;
+  transition: border-color 0.2s, transform 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+#themeToggle:hover { border-color: var(--accent); transform: scale(1.03); }
+
+/* ─── PAGE HEADER ───────────────────────── */
+.page-header { margin-bottom: clamp(1rem, 3vw, 1.75rem); }
+.live-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 5px 12px 5px 8px; background: var(--mark-bg); color: var(--mark-text);
+  border-radius: 4px; font-family: 'DM Mono', monospace;
+  font-size: 0.6rem; font-weight: 500; letter-spacing: 0.2em;
+  text-transform: uppercase; margin-bottom: 10px;
+}
+.live-tag::before { content: ''; width: 6px; height: 6px; background: rgba(255,255,255,0.8); border-radius: 50%; animation: livePulse 1.8s ease-in-out infinite; }
+@keyframes livePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+.page-title { font-family: 'Playfair Display', serif; font-weight: 900; line-height: 0.9; font-size: clamp(1.8rem, 5vw, 3rem); letter-spacing: -0.03em; color: var(--text); transition: color 0.4s; }
+.page-title em { font-style: italic; font-weight: 400; color: var(--accent); }
+.page-sub { font-size: 0.78rem; color: var(--text-3); font-weight: 300; margin-top: 6px; }
+
+/* ─── DIVIDER ───────────────────────────── */
+.divider { display: flex; align-items: center; gap: 12px; margin: 1.25rem 0; }
+.divider .rule { flex: 1; height: 1px; background: var(--border); }
+.divider .cross { width: 12px; height: 12px; position: relative; opacity: 0.4; }
+.divider .cross::before, .divider .cross::after { content: ''; position: absolute; background: var(--text); border-radius: 2px; }
+.divider .cross::before { width: 100%; height: 1px; top: 50%; transform: translateY(-50%); }
+.divider .cross::after  { width: 1px; height: 100%; left: 50%; transform: translateX(-50%); }
+
+/* ─── SECTION CARD ──────────────────────── */
+.section-card {
+  position: relative; border-radius: 16px;
+  padding: clamp(1.1rem, 3.5vw, 1.75rem);
+  margin-bottom: clamp(1rem, 2.5vw, 1.4rem);
+  animation: fadeUp 0.6s var(--ease-expo) both;
+}
+.section-card:nth-child(1) { animation-delay: 0.10s; }
+.section-card:nth-child(2) { animation-delay: 0.18s; }
+.section-card:nth-child(3) { animation-delay: 0.26s; }
+
+.section-eyebrow { font-family: 'DM Mono', monospace; font-size: 0.58rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+.section-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: clamp(1rem, 2.5vw, 1.25rem); color: var(--text); margin-bottom: 1.1rem; transition: color 0.4s; }
+
+/* ─── FORM FIELDS ───────────────────────── */
+.form-grid { display: grid; gap: 12px; }
+@media (min-width: 640px) { .form-grid.two-col { grid-template-columns: repeat(2, 1fr); } }
+
+.form-row { display: flex; flex-direction: column; gap: 5px; }
+.field-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--text-3);
+}
+.field-input, .field-select {
+  width: 100%; padding: 11px 14px; border-radius: 10px;
+  background: var(--input-bg); border: 1px solid var(--border);
+  color: var(--input-text); font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem; outline: none; min-height: 44px;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.4s;
+  -webkit-text-size-adjust: 100%;
+}
+@media (max-width: 600px) { .field-input, .field-select { font-size: 16px; } }
+.field-input::placeholder { color: var(--text-3); }
+.field-input:focus, .field-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.field-input:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ─── SAVE BUTTON ───────────────────────── */
+.save-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px 24px; border-radius: 10px;
+  background: var(--accent); color: #fff; border: none;
+  font-family: 'DM Mono', monospace; font-size: 0.76rem;
+  letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer;
+  box-shadow: 0 6px 20px var(--accent-glow); min-height: 46px;
+  transition: opacity 0.15s, transform 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  position: relative; overflow: hidden;
+}
+.save-btn::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+  transform: translateX(-100%); transition: transform 0.45s ease;
+}
+.save-btn:hover::after { transform: translateX(100%); }
+.save-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+.save-btn:active { transform: scale(0.98); }
+
+/* ─── TOAST ─────────────────────────────── */
+.toast {
+  position: fixed; bottom: 48px; left: 50%; transform: translateX(-50%) translateY(16px);
+  background: var(--accent); color: #fff;
+  font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.15em;
+  text-transform: uppercase; padding: 10px 22px; border-radius: 10px;
+  box-shadow: 0 8px 24px var(--accent-glow);
+  opacity: 0; pointer-events: none; z-index: 100;
+  transition: opacity 0.3s, transform 0.3s;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ─── ACTIVITY LOG ──────────────────────── */
+.log-wrap {
+  max-height: 280px; overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--th-bg);
+  margin-bottom: 14px;
+}
+.log-empty {
+  padding: 2rem 1rem; text-align: center;
+  font-family: 'DM Mono', monospace; font-size: 0.68rem;
+  letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-3);
+}
+.log-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 10px 14px; border-bottom: 1px solid var(--divider);
+  transition: background 0.15s;
+}
+.log-item:last-child { border-bottom: none; }
+.log-item:nth-child(even) { background: var(--log-stripe); }
+.log-item:hover { background: var(--th-bg); }
+.log-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--accent); opacity: 0.6;
+  flex-shrink: 0; margin-top: 4px;
+}
+.log-text {
+  font-size: clamp(0.74rem, 2vw, 0.82rem); color: var(--text-2);
+  line-height: 1.5;
+}
+
+/* Load log button */
+.load-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 18px; border-radius: 10px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); font-family: 'DM Mono', monospace;
+  font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase;
+  cursor: pointer; min-height: 44px;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.load-btn:hover { border-color: var(--accent); background: var(--surface-hov); transform: translateY(-1px); }
+.load-btn.loaded { opacity: 0.5; cursor: default; transform: none !important; }
+
+/* Spinner */
+.spin-ring {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: currentColor; border-radius: 50%;
+  animation: spin 0.7s linear infinite; display: none;
+}
+.loading .spin-ring { display: inline-block; }
+.loading .btn-label { display: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── TICKER ─────────────────────────────── */
+.ticker-wrap { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--accent); overflow: hidden; padding: 7px 0; z-index: 50; transition: background 0.4s; }
+.ticker-inner { display: flex; white-space: nowrap; animation: ticker 22s linear infinite; }
+.ticker-item { font-family: 'DM Mono', monospace; font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; padding: 0 30px; color: rgba(255,255,255,0.9); }
+.ticker-dot { display: inline-block; width: 4px; height: 4px; background: rgba(255,255,255,0.5); border-radius: 50%; vertical-align: middle; margin: 0 14px; }
+@keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+/* ─── ANIMATIONS ────────────────────────── */
+@keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+/* ─── LANDSCAPE PHONES ──────────────────── */
+@media (max-height: 500px) and (orientation: landscape) {
+  .page-title { font-size: 1.4rem; }
+  .deco-word { display: none; }
+}
 </style>
 </head>
 
-<body class="min-h-screen bg-gradient-to-br from-green-400 via-blue-500 to-indigo-600 dark:from-gray-900 dark:via-gray-800 dark:to-black transition duration-500">
+<body>
 
-<!-- Bubbles -->
+<div class="deco-bg" aria-hidden="true">
+  <div class="deco-word w1">ADMIN</div>
+  <div class="deco-word w2">Settings</div>
+</div>
 <div class="bubbles" id="bubbles"></div>
 
-<!-- Sidebar -->
-<aside id="sidebar" class="fixed top-0 left-0 h-full w-64 glass p-6 text-white z-40 transform -translate-x-full transition-transform duration-300 flex flex-col justify-between">
-<div>
-<div class="flex items-center justify-between mb-10">
-<h1 class="text-2xl font-bold">LOUNGE</h1>
-<button id="closeSidebar" class="p-2 rounded-lg hover:bg-white/20 transition">
-<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-</svg>
-</button>
-</div>
-
-<nav class="space-y-3">
-      <a href="{{ url_for('dashboard') }}" class="block px-4 py-3 rounded-xl hover:bg-white/20 transition">Dashboard</a>
-      <a href="{{ url_for('orders') }}" class="block px-4 py-3 rounded-xl hover:bg-white/20 transition">Orders</a>
-      <a href="{{ url_for('customers') }}" class="block px-4 py-3 rounded-xl hover:bg-white/20 transition">Customers</a>
-      <a href="{{ url_for('reports') }}" class="block px-4 py-3 rounded-xl hover:bg-white/20 transition">Reports</a>
-      <a href="{{ url_for('settings') }}" class="block px-4 py-3 rounded-xl hover:bg-white/20 transition">Settings</a>
-</nav>
-</div>
-<div class="mt-10 flex flex-col gap-2">
-    <p class="text-sm opacity-80" id="adminUser">{{ user }}</p>
-    <p class="text-xs opacity-60">admin@laundry.com</p>
-    <a href="{{ url_for('logout') }}" class="mt-3 block px-4 py-2 rounded-xl bg-red-500 hover:bg-red-400 text-white text-sm text-center transition">Log Out</a>
-</div>
+<!-- ══════ SIDEBAR ══════ -->
+<aside id="sidebar">
+  <div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.75rem;">
+      <div>
+        <div class="sb-eyebrow">Est. 2024 · Nueva Ecija</div>
+        <div class="sb-name">Laundry <span>Lounge</span></div>
+      </div>
+      <button id="closeSidebar" aria-label="Close sidebar">✕</button>
+    </div>
+    <nav style="display:flex;flex-direction:column;gap:3px;">
+      <a href="{{ url_for('dashboard') }}" class="nav-link"><span></span>Dashboard</a>
+      <a href="{{ url_for('orders') }}"    class="nav-link"><span></span>Orders</a>
+      <a href="{{ url_for('customers') }}" class="nav-link"><span></span>Customers</a>
+      <a href="{{ url_for('reports') }}"   class="nav-link"><span></span>Reports</a>
+      <a href="{{ url_for('settings') }}"  class="nav-link active"><span></span>Activity Logs</a>
+    </nav>
+  </div>
+  <div class="sb-user">
+    <div class="sb-uname" id="sidebarUser">{{ user }}</div>
+    <div class="sb-uemail">admin@laundry.com</div>
+    <a href="{{ url_for('logout') }}" class="sb-logout">Log Out</a>
+  </div>
 </aside>
 
-<div id="overlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-30"></div>
+<div id="overlay"></div>
 
-<!-- MAIN CONTENT -->
-<div class="relative z-10 p-4 sm:p-6 md:p-8 text-white transition-all duration-300">
+<!-- ══════ MAIN ══════ -->
+<div id="main">
 
-<div class="decorative-line" style="top:50px; left:20%;"></div>
-<div class="decorative-line reverse" style="top:200px; left:65%;"></div>
-<div class="decorative-circle" style="top:150px; left:10%;"></div>
-<div class="decorative-circle" style="top:300px; left:75%; width:150px; height:150px;"></div>
+  <!-- Topbar -->
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
+      <button id="openSidebar" aria-label="Open sidebar">☰</button>
+      <div>
+        <h2 class="page-title">Admin <em>Settings</em></h2>
+      </div>
+    </div>
+    <button id="themeToggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span id="themeIcon">☀</span>
+      <span id="themeLabel">Theme</span>
+    </button>
+  </div>
 
-<div class="flex justify-between items-center mb-8">
-<button id="openSidebar" class="p-3 rounded-xl bg-white/20 hover:bg-white/30 transition">
-<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-</svg>
-</button>
-<button onclick="toggleDark()" class="px-5 py-2 rounded-full bg-white/20 hover:bg-white/30 transition">🌙</button>
-</div>
+  <!-- Header -->
+  <div class="page-header">
+    <div class="live-tag">Settings &nbsp;·&nbsp; Admin Panel</div>
+    <p class="page-sub">Manage your admin account preferences and view activity.</p>
+  </div>
 
-<div class="mb-6">
-<h2 class="text-3xl font-bold">Admin Settings</h2>
-<p class="text-white/70 text-sm mt-2">Manage your admin preferences</p>
-</div>
+  <!-- Divider -->
+  <div class="divider"><div class="rule"></div><div class="cross"></div><div class="rule"></div></div>
 
-<!-- Activity Log -->
-<div class="glass p-6 rounded-2xl shadow-lg flex flex-col justify-between">
-    <h3 class="text-2xl font-bold mb-4 text-white">Activity Log</h3>
-    <ul id="activityLog" class="text-white/70 text-sm mb-4 max-h-48 overflow-y-auto"></ul>
-    <button id="viewLogBtn" class="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-400 transition">Load Activity Log</button>
-</div>
+  <!-- ── Activity Log ── -->
+  <div class="glass section-card">
+    <div class="corner-acc"></div>
+    <p class="section-eyebrow">Audit</p>
+    <h3 class="section-title">Activity Log</h3>
 
+    <div class="log-wrap" id="logWrap">
+      <div class="log-empty" id="logEmpty">Press "Load Log" to view recent activity.</div>
+    </div>
+
+    <button class="load-btn" id="viewLogBtn" onclick="fetchActivityLog()">
+      <span class="btn-label">📋 Load Activity Log</span>
+      <span class="spin-ring"></span>
+    </button>
+  </div>
+
+</div><!-- /main -->
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Ticker -->
+<div class="ticker-wrap" aria-hidden="true">
+  <div class="ticker-inner">
+    <span class="ticker-item">Fast Pickup</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Order Tracking</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Premium Care</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Same-Day Service</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Fresh Every Time</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Laundry Lounge</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Fast Pickup</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Order Tracking</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Premium Care</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Same-Day Service</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Fresh Every Time</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Laundry Lounge</span><span class="ticker-dot"></span>
+  </div>
 </div>
 
 <script>
-// ------------------ Bubble Generator ------------------
-const bubbleContainer = document.getElementById('bubbles');
-function createBubble(){
-    const bubble = document.createElement('div');
-    bubble.classList.add('bubble');
-    const size = Math.random()*60+20;
-    bubble.style.width=size+'px';
-    bubble.style.height=size+'px';
-    bubble.style.left=Math.random()*100+'vw';
-    bubble.style.animationDuration=(Math.random()*10+12)+'s';
-    bubble.style.animationDelay=Math.random()*5+'s';
-    bubbleContainer.appendChild(bubble);
-    setTimeout(()=>bubble.remove(),20000);
+/* ─── Theme ────────────────────────── */
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.dataset.theme === 'dark';
+  html.dataset.theme = isDark ? 'light' : 'dark';
+  document.getElementById('themeIcon').textContent = isDark ? '☀' : '☽';
+  localStorage.setItem('ll-theme', html.dataset.theme);
 }
-setInterval(createBubble,700);
+(function() {
+  const saved = localStorage.getItem('ll-theme');
+  if (saved) {
+    document.documentElement.dataset.theme = saved;
+    const icon = document.getElementById('themeIcon');
+    if (icon) icon.textContent = saved === 'dark' ? '☽' : '☀';
+  }
+})();
 
-// ------------------ Sidebar ------------------
+/* ─── Sidebar ──────────────────────── */
 const sidebar = document.getElementById('sidebar');
 const overlay = document.getElementById('overlay');
-document.getElementById('openSidebar').onclick = () => {
-    sidebar.classList.remove('-translate-x-full');
-    overlay.classList.remove('hidden');
-};
-document.getElementById('closeSidebar').onclick = () => {
-    sidebar.classList.add('-translate-x-full');
-    overlay.classList.add('hidden');
-};
-overlay.onclick = () => {
-    sidebar.classList.add('-translate-x-full');
-    overlay.classList.add('hidden');
-};
+const mainEl  = document.getElementById('main');
+let sidebarOpen = false;
 
-// ------------------ Dark Mode ------------------
-function toggleDark(){
-    document.documentElement.classList.toggle('dark');
-    localStorage.setItem(
-        'theme',
-        document.documentElement.classList.contains('dark') ? 'dark' : 'light'
-    );
+function openSidebar() {
+  sidebarOpen = true;
+  sidebar.classList.add('open');
+  if (window.innerWidth >= 1024) { mainEl.classList.add('sidebar-open'); overlay.classList.remove('visible'); }
+  else { overlay.classList.add('visible'); }
 }
-if(localStorage.getItem('theme')==='dark'){
-    document.documentElement.classList.add('dark');
+function closeSidebar() {
+  sidebarOpen = false;
+  sidebar.classList.remove('open');
+  overlay.classList.remove('visible');
+  mainEl.classList.remove('sidebar-open');
+}
+function toggleSidebar() { sidebarOpen ? closeSidebar() : openSidebar(); }
+
+document.getElementById('openSidebar').addEventListener('click', toggleSidebar);
+document.getElementById('closeSidebar').addEventListener('click', closeSidebar);
+overlay.addEventListener('click', closeSidebar);
+
+let lastWasDesktop = window.innerWidth >= 1024;
+window.addEventListener('resize', () => {
+  const isDesktop = window.innerWidth >= 1024;
+  if (isDesktop && !lastWasDesktop) { openSidebar(); overlay.classList.remove('visible'); }
+  else if (!isDesktop && lastWasDesktop) { closeSidebar(); }
+  lastWasDesktop = isDesktop;
+  if (isDesktop) overlay.classList.remove('visible');
+  updateThemeLabel();
+});
+if (window.innerWidth >= 1024) openSidebar(); else closeSidebar();
+
+function updateThemeLabel() {
+  document.getElementById('themeLabel').style.display = window.innerWidth >= 400 ? 'inline' : 'none';
+}
+updateThemeLabel();
+
+/* ─── Bubbles ──────────────────────── */
+(function() {
+  const c = document.getElementById('bubbles');
+  for (let i = 0; i < 18; i++) {
+    const b = document.createElement('div'); b.classList.add('bubble');
+    const s = Math.random() * 60 + 12;
+    b.style.cssText = `width:${s}px;height:${s}px;left:${Math.random()*100}%;animation-duration:${Math.random()*12+6}s;animation-delay:${Math.random()*7}s;`;
+    c.appendChild(b);
+  }
+})();
+
+/* ─── Toast ────────────────────────── */
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = isError ? '#DC3C3C' : 'var(--accent)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-// ------------------ Activity Log ------------------
+/* ─── Save Profile ─────────────────── */
+async function saveProfile() {
+  const name    = document.getElementById('adminName').value.trim();
+  const email   = document.getElementById('adminEmail').value.trim();
+  const contact = document.getElementById('adminContact').value.trim();
+  if (!name || !email) { showToast('Name and email are required.', true); return; }
+  try {
+    const res = await fetch('/api/admin/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, contact })
+    });
+    if (!res.ok) throw new Error();
+    document.getElementById('sidebarUser').textContent = name;
+    showToast('✓ Profile saved successfully.');
+  } catch {
+    showToast('Failed to save profile.', true);
+  }
+}
+
+/* ─── Change Password ──────────────── */
+async function changePassword() {
+  const current = document.getElementById('currentPwd').value;
+  const newP    = document.getElementById('newPwd').value;
+  const confirm = document.getElementById('confirmPwd').value;
+  if (!current || !newP || !confirm) { showToast('All password fields are required.', true); return; }
+  if (newP !== confirm) { showToast('New passwords do not match.', true); return; }
+  if (newP.length < 6)  { showToast('Password must be at least 6 characters.', true); return; }
+  try {
+    const res = await fetch('/api/admin/password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ current_password: current, new_password: newP })
+    });
+    if (!res.ok) throw new Error();
+    document.getElementById('currentPwd').value = '';
+    document.getElementById('newPwd').value = '';
+    document.getElementById('confirmPwd').value = '';
+    showToast('✓ Password updated successfully.');
+  } catch {
+    showToast('Failed to update password. Check current password.', true);
+  }
+}
+
+/* ─── Activity Log ─────────────────── */
 let logLoaded = false;
-async function fetchActivityLog(){
-    if(logLoaded) return;
-    const ul = document.getElementById('activityLog');
-    ul.innerHTML = "<li>Loading...</li>";
-    try{
-        const res = await fetch('/api/admin/log');
-        const data = await res.json();
-        ul.innerHTML = '';
-        if(data.length === 0){
-            ul.innerHTML = "<li>No activity yet.</li>";
-            return;
-        }
-        data.slice().reverse().forEach(item=>{
-            const li = document.createElement('li');
-            li.textContent = item;
-            ul.appendChild(li);
-        });
-        logLoaded = true;
-    }catch(err){
-        ul.innerHTML = "<li>Error loading activity log.</li>";
+async function fetchActivityLog() {
+  if (logLoaded) return;
+  const btn  = document.getElementById('viewLogBtn');
+  const wrap = document.getElementById('logWrap');
+  const empty = document.getElementById('logEmpty');
+
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/admin/log');
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+
+    wrap.innerHTML = '';
+
+    if (!data.length) {
+      wrap.innerHTML = '<div class="log-empty">No activity recorded yet.</div>';
+    } else {
+      data.slice().reverse().forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'log-item';
+        div.innerHTML = `<span class="log-dot"></span><span class="log-text">${item}</span>`;
+        wrap.appendChild(div);
+      });
     }
+
+    logLoaded = true;
+    btn.classList.add('loaded');
+    btn.querySelector('.btn-label').textContent = '✓ Log Loaded';
+  } catch {
+    wrap.innerHTML = '<div class="log-empty">Error loading activity log.</div>';
+    showToast('Could not load activity log.', true);
+  } finally {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
 }
-document.getElementById('viewLogBtn').onclick = fetchActivityLog;
 </script>
 </body>
 </html>

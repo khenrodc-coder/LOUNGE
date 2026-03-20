@@ -1,179 +1,687 @@
 <!DOCTYPE html>
-<html lang="en" class="transition duration-300">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LOUNGE Customer Management</title>
+<title>LOUNGE — Customers</title>
 
-<script src="https://cdn.tailwindcss.com"></script>
-<script> tailwind.config = { darkMode: 'class' } </script>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
-body{ font-family:'DM Sans',sans-serif; overflow-x:hidden; }
-h1,h2,h3{ font-family:'Poppins',sans-serif; }
-.glass{ background: rgba(255,255,255,0.25); backdrop-filter: blur(18px); border: 1px solid rgba(255,255,255,0.3); transition: box-shadow 0.3s, transform 0.3s;}
-.glass:hover{ box-shadow: 0 0 20px rgba(255,255,255,0.5); transform: translateY(-3px);}
-.dark .glass{ background: rgba(30,41,59,0.35); border: 1px solid rgba(255,255,255,0.08);}
-.bubbles{ position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none;}
-.bubble{ position: absolute; bottom: -150px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(255,255,255,0.4) 40%, rgba(255,255,255,0.2) 60%, transparent 70%); animation: floatUp linear infinite; opacity: 0.6;}
-@keyframes floatUp{0%{ transform: translateY(0) scale(1); opacity:0;}10%{opacity:0.6;}90%{opacity:0.6;}100%{transform: translateY(-120vh) scale(1.2); opacity:0;}}
+/* ─── RESET ─────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ─── THEME TOKENS ───────────────────────── */
+:root {
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+[data-theme="light"] {
+  --bg:          #F4EFE6;
+  --bg-alt:      #EDE7DB;
+  --surface:     rgba(255,255,255,0.72);
+  --surface-hov: rgba(255,255,255,0.9);
+  --border:      rgba(0,0,0,0.10);
+  --border-acc:  rgba(196,79,31,0.4);
+  --text:        #1A1309;
+  --text-2:      #5A4E3A;
+  --text-3:      rgba(90,78,58,0.55);
+  --accent:      #C44F1F;
+  --accent-2:    #3E6B45;
+  --accent-glow: rgba(196,79,31,0.22);
+  --mark-bg:     #C44F1F;
+  --mark-text:   #fff;
+  --shadow:      0 20px 60px rgba(60,30,0,0.12), 0 4px 20px rgba(60,30,0,0.06);
+  --shadow-sm:   0 4px 16px rgba(60,30,0,0.08);
+  --deco-op:     0.05;
+  --toggle-bg:   rgba(0,0,0,0.06);
+  --sidebar-bg:  rgba(255,255,255,0.82);
+  --overlay-bg:  rgba(30,20,10,0.4);
+  --input-bg:    rgba(255,255,255,0.85);
+  --input-text:  #1A1309;
+  --bubble-a:    rgba(196,79,31,0.15);
+  --bubble-b:    rgba(196,79,31,0.04);
+  --th-bg:       rgba(196,79,31,0.08);
+  --row-hover:   rgba(196,79,31,0.05);
+  --divider:     rgba(0,0,0,0.07);
+  --card-bg:     rgba(255,255,255,0.55);
+}
+[data-theme="dark"] {
+  --bg:          #100E0A;
+  --bg-alt:      #1A1610;
+  --surface:     rgba(30,25,18,0.82);
+  --surface-hov: rgba(40,34,24,0.92);
+  --border:      rgba(255,255,255,0.09);
+  --border-acc:  rgba(232,110,50,0.45);
+  --text:        #F0E8D8;
+  --text-2:      #B0A088;
+  --text-3:      rgba(176,160,136,0.55);
+  --accent:      #E8703A;
+  --accent-2:    #74BF82;
+  --accent-glow: rgba(232,112,58,0.3);
+  --mark-bg:     #E8703A;
+  --mark-text:   #fff;
+  --shadow:      0 20px 60px rgba(0,0,0,0.55), 0 4px 20px rgba(0,0,0,0.3);
+  --shadow-sm:   0 4px 16px rgba(0,0,0,0.35);
+  --deco-op:     0.04;
+  --toggle-bg:   rgba(255,255,255,0.09);
+  --sidebar-bg:  rgba(16,12,8,0.94);
+  --overlay-bg:  rgba(0,0,0,0.58);
+  --input-bg:    rgba(255,255,255,0.07);
+  --input-text:  #F0E8D8;
+  --bubble-a:    rgba(232,112,58,0.12);
+  --bubble-b:    rgba(232,112,58,0.03);
+  --th-bg:       rgba(232,112,58,0.08);
+  --row-hover:   rgba(232,112,58,0.05);
+  --divider:     rgba(255,255,255,0.07);
+  --card-bg:     rgba(30,25,18,0.65);
+}
+
+/* ─── BASE ──────────────────────────────── */
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background 0.4s ease, color 0.4s ease;
+  padding-bottom: 34px;
+}
+
+/* ─── GLASS ─────────────────────────────── */
+.glass {
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.3s, transform 0.3s, background 0.4s, border-color 0.4s;
+}
+.glass:hover { box-shadow: var(--shadow); border-color: var(--border-acc); background: var(--surface-hov); }
+@media (hover: none) { .glass { transform: none !important; } }
+
+.corner-acc {
+  position: absolute; top: -1px; right: -1px;
+  width: 44px; height: 44px;
+  border-top: 2px solid var(--accent);
+  border-right: 2px solid var(--accent);
+  border-radius: 0 16px 0 0;
+  opacity: 0.45; pointer-events: none;
+  transition: opacity 0.2s;
+}
+.glass:hover .corner-acc { opacity: 1; }
+
+/* ─── DECO BG ───────────────────────────── */
+.deco-bg { pointer-events: none; position: fixed; inset: 0; overflow: hidden; z-index: 0; }
+.deco-word {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900; font-size: clamp(6rem, 18vw, 20rem);
+  line-height: 0.82; color: var(--text); opacity: var(--deco-op);
+  position: absolute; white-space: nowrap; user-select: none;
+  letter-spacing: -0.04em; transition: opacity 0.4s;
+}
+.deco-word.w1 { top: -4%; left: -3%; transform: rotate(-3deg); }
+.deco-word.w2 { bottom: 0; right: -4%; transform: rotate(2deg); font-style: italic; }
+@media (max-width: 600px) { .deco-word { display: none; } }
+
+/* ─── BUBBLES ───────────────────────────── */
+.bubbles { position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+.bubble {
+  position: absolute; bottom: -150px; border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, var(--bubble-a), var(--bubble-b) 60%, transparent 80%);
+  border: 1px solid var(--border-acc);
+  animation: floatUp linear infinite; opacity: 0;
+}
+@keyframes floatUp {
+  0%   { transform: translateY(0) scale(1); opacity: 0; }
+  10%  { opacity: 0.55; }
+  90%  { opacity: 0.2; }
+  100% { transform: translateY(-115vh) scale(1.3); opacity: 0; }
+}
+
+/* ─── SIDEBAR ───────────────────────────── */
+#sidebar {
+  position: fixed; top: 0; left: 0; height: 100%;
+  width: 256px; z-index: 40;
+  transform: translateX(-100%);
+  display: flex; flex-direction: column; justify-content: space-between;
+  overflow-y: auto; overscroll-behavior: contain;
+  background: var(--sidebar-bg);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border-right: 1px solid var(--border);
+  padding: 1.5rem 1.25rem;
+  transition: transform 0.3s var(--ease-expo), background 0.4s, border-color 0.4s;
+}
+#sidebar.open { transform: translateX(0); }
+
+.sb-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem; letter-spacing: 0.3em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 4px;
+}
+.sb-name {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700; font-size: 1.45rem;
+  color: var(--text); line-height: 1; letter-spacing: -0.01em;
+  transition: color 0.4s;
+}
+.sb-name span { font-style: italic; font-weight: 400; color: var(--accent); }
+
+.nav-link {
+  display: flex; align-items: center; gap: 11px;
+  padding: 10px 13px; border-radius: 10px;
+  font-size: 0.86rem; font-weight: 500;
+  color: var(--text-2); border: 1px solid transparent;
+  text-decoration: none; min-height: 44px;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-link:hover, .nav-link.active {
+  background: var(--surface-hov); color: var(--text); border-color: var(--border-acc);
+}
+.nav-link.active { color: var(--accent); }
+
+.sb-user { padding-top: 1rem; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 3px; }
+.sb-uname { font-size: 0.85rem; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-uemail { font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-logout {
+  margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 10px 16px; border-radius: 10px;
+  background: rgba(220,60,60,0.10); color: #DC3C3C;
+  border: 1px solid rgba(220,60,60,0.25);
+  font-family: 'DM Mono', monospace; font-size: 0.66rem;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  text-decoration: none; min-height: 44px;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.sb-logout:hover { background: rgba(220,60,60,0.20); border-color: rgba(220,60,60,0.5); transform: translateY(-1px); }
+
+#closeSidebar {
+  width: 34px; height: 34px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--toggle-bg);
+  color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem; transition: border-color 0.2s;
+  flex-shrink: 0; -webkit-tap-highlight-color: transparent;
+}
+#closeSidebar:hover { border-color: var(--accent); }
+
+/* ─── OVERLAY ───────────────────────────── */
+#overlay {
+  position: fixed; inset: 0; background: var(--overlay-bg);
+  backdrop-filter: blur(4px); z-index: 30; display: none;
+}
+#overlay.visible { display: block; }
+
+/* ─── MAIN ──────────────────────────────── */
+#main {
+  position: relative; z-index: 10;
+  padding: clamp(1rem, 4vw, 2.5rem);
+  min-height: 100vh;
+  transition: margin-left 0.3s var(--ease-expo);
+}
+@media (min-width: 1024px) {
+  #main.sidebar-open { margin-left: 256px; }
+}
+
+/* ─── TOPBAR ────────────────────────────── */
+.topbar {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: clamp(1rem, 3.5vw, 1.75rem); gap: 12px;
+}
+#openSidebar {
+  width: 44px; height: 44px; border-radius: 10px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; flex-shrink: 0;
+  transition: border-color 0.2s, transform 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+#openSidebar:hover { border-color: var(--accent); transform: scale(1.05); }
+
+#themeToggle {
+  display: flex; align-items: center; gap: 7px;
+  padding: 10px 15px; border-radius: 30px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); cursor: pointer; white-space: nowrap;
+  font-family: 'DM Mono', monospace; font-size: 0.66rem;
+  letter-spacing: 0.15em; text-transform: uppercase; min-height: 44px;
+  transition: border-color 0.2s, transform 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+#themeToggle:hover { border-color: var(--accent); transform: scale(1.03); }
+
+/* ─── PAGE HEADER ───────────────────────── */
+.page-header { margin-bottom: clamp(1rem, 3vw, 1.75rem); }
+.live-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 5px 12px 5px 8px; background: var(--mark-bg); color: var(--mark-text);
+  border-radius: 4px; font-family: 'DM Mono', monospace;
+  font-size: 0.6rem; font-weight: 500; letter-spacing: 0.2em;
+  text-transform: uppercase; margin-bottom: 10px;
+}
+.live-tag::before {
+  content: ''; width: 6px; height: 6px;
+  background: rgba(255,255,255,0.8); border-radius: 50%;
+  animation: livePulse 1.8s ease-in-out infinite;
+}
+@keyframes livePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+.page-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900; line-height: 0.9;
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  letter-spacing: -0.03em; color: var(--text); transition: color 0.4s;
+}
+.page-title em { font-style: italic; font-weight: 400; color: var(--accent); }
+.page-sub { font-size: 0.78rem; color: var(--text-3); font-weight: 300; margin-top: 6px; }
+
+/* ─── TOOLBAR ───────────────────────────── */
+.toolbar {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  align-items: center; justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.search-input {
+  width: 100%; max-width: 320px;
+  padding: 10px 16px; border-radius: 10px;
+  background: var(--input-bg); border: 1px solid var(--border);
+  color: var(--input-text); font-family: 'DM Sans', sans-serif;
+  font-size: 0.86rem; outline: none; min-height: 44px;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.4s;
+}
+.search-input::placeholder { color: var(--text-3); }
+.search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+@media (max-width: 600px) { .search-input { font-size: 16px; max-width: 100%; } }
+
+/* ─── DIVIDER ───────────────────────────── */
+.divider { display: flex; align-items: center; gap: 12px; margin: 1.25rem 0; }
+.divider .rule { flex: 1; height: 1px; background: var(--border); }
+.divider .cross { width: 12px; height: 12px; position: relative; opacity: 0.4; }
+.divider .cross::before, .divider .cross::after { content: ''; position: absolute; background: var(--text); border-radius: 2px; }
+.divider .cross::before { width: 100%; height: 1px; top: 50%; transform: translateY(-50%); }
+.divider .cross::after  { width: 1px; height: 100%; left: 50%; transform: translateX(-50%); }
+
+/* ─── TABLE (desktop) ───────────────────── */
+.table-card {
+  position: relative; border-radius: 16px; overflow: hidden;
+  animation: fadeUp 0.6s var(--ease-expo) 0.15s both;
+}
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+table {
+  width: 100%; border-collapse: collapse;
+  min-width: 620px;
+}
+thead tr { background: var(--th-bg); border-bottom: 1px solid var(--border-acc); }
+thead th {
+  padding: 12px 16px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--accent); font-weight: 500;
+  text-align: left; white-space: nowrap;
+}
+tbody tr { border-bottom: 1px solid var(--divider); transition: background 0.15s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--row-hover); }
+tbody td {
+  padding: 11px 16px; color: var(--text-2);
+  font-size: clamp(0.75rem, 2vw, 0.86rem); vertical-align: middle; white-space: nowrap;
+}
+.td-id { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--accent); }
+.td-name { font-weight: 600; color: var(--text); }
+.td-spent { font-weight: 600; color: var(--text); }
+
+/* Status badge */
+.badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 3px 10px; border-radius: 6px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem; letter-spacing: 0.1em;
+  text-transform: uppercase; font-weight: 500; white-space: nowrap;
+}
+.badge-active   { background: rgba(62,107,69,0.15); color: var(--accent-2); border: 1px solid rgba(62,107,69,0.3); }
+.badge-inactive { background: rgba(196,79,31,0.10); color: var(--accent);   border: 1px solid rgba(196,79,31,0.25); }
+[data-theme="dark"] .badge-active   { background: rgba(116,191,130,0.12); color: #74BF82; border-color: rgba(116,191,130,0.3); }
+[data-theme="dark"] .badge-inactive { background: rgba(232,112,58,0.12);  color: #E8703A; border-color: rgba(232,112,58,0.3); }
+
+/* ─── MOBILE CARDS ──────────────────────── */
+.customer-cards {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+@media (max-width: 640px) {
+  .table-card  { display: none; }
+  .customer-cards { display: flex; }
+}
+
+.customer-card {
+  position: relative; border-radius: 14px;
+  padding: 1rem 1.1rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.4s;
+  animation: fadeUp 0.5s var(--ease-expo) both;
+}
+.customer-card:hover { border-color: var(--border-acc); box-shadow: var(--shadow); }
+
+.card-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.card-name { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1rem; color: var(--text); }
+.card-id   { font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em; color: var(--accent); }
+.card-meta { font-size: 0.78rem; color: var(--text-2); margin-top: 6px; display: flex; flex-direction: column; gap: 3px; }
+.card-meta span { display: flex; gap: 6px; align-items: center; }
+.card-meta .label { font-family: 'DM Mono', monospace; font-size: 0.56rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); min-width: 70px; }
+.card-spent { font-weight: 600; color: var(--text); }
+
+/* ─── EMPTY STATE ───────────────────────── */
+.empty-state {
+  text-align: center; padding: 3rem 1rem;
+  font-family: 'DM Mono', monospace; font-size: 0.72rem;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--text-3); display: none;
+}
+.empty-state.visible { display: block; }
+
+/* ─── TICKER ─────────────────────────────── */
+.ticker-wrap {
+  position: fixed; bottom: 0; left: 0; width: 100%;
+  background: var(--accent); overflow: hidden;
+  padding: 7px 0; z-index: 50; transition: background 0.4s;
+}
+.ticker-inner { display: flex; white-space: nowrap; animation: ticker 22s linear infinite; }
+.ticker-item { font-family: 'DM Mono', monospace; font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; padding: 0 30px; color: rgba(255,255,255,0.9); }
+.ticker-dot { display: inline-block; width: 4px; height: 4px; background: rgba(255,255,255,0.5); border-radius: 50%; vertical-align: middle; margin: 0 14px; }
+@keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+/* ─── ANIMATIONS ────────────────────────── */
+@keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+/* ─── LANDSCAPE PHONES ──────────────────── */
+@media (max-height: 500px) and (orientation: landscape) {
+  .page-title { font-size: 1.4rem; }
+  .deco-word { display: none; }
+}
 </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-green-400 via-blue-500 to-indigo-600 dark:from-gray-900 dark:via-gray-800 dark:to-black transition duration-500">
 
+<body>
+
+<div class="deco-bg" aria-hidden="true">
+  <div class="deco-word w1">CLEAN</div>
+  <div class="deco-word w2">Fresh</div>
+</div>
 <div class="bubbles" id="bubbles"></div>
 
-<!-- SIDEBAR -->
-<aside id="sidebar" class="fixed top-0 left-0 h-full w-64 glass p-6 text-white z-40 transform -translate-x-full transition-transform duration-300 flex flex-col justify-between">
+<!-- ══════ SIDEBAR ══════ -->
+<aside id="sidebar">
   <div>
-    <div class="flex items-center justify-between mb-10">
-      <h1 class="text-2xl font-bold">LOUNGE</h1>
-      <button id="closeSidebar" class="p-2 rounded-lg hover:bg-white/20 transition">✖</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.75rem;">
+      <div>
+        <div class="sb-eyebrow">Est. 2024 · Nueva Ecija</div>
+        <div class="sb-name">Laundry <span>Lounge</span></div>
+      </div>
+      <button id="closeSidebar" aria-label="Close sidebar">✕</button>
     </div>
-    <nav class="space-y-3">
-      <a href="{{ url_for('dashboard') }}" class="block px-4 py-3 rounded-xl hover:bg-white/20 transition">Dashboard</a>
-      <a href="{{ url_for('orders') }}" class="block px-4 py-3 rounded-xl hover:bg-white/20 transition">Orders</a>
-      <a href="{{ url_for('customers') }}" class="block px-4 py-3 rounded-xl hover:bg-white/20 transition">Customers</a>
-      <a href="{{ url_for('reports') }}" class="block px-4 py-3 rounded-xl hover:bg-white/20 transition">Reports</a>
-      <a href="{{ url_for('settings') }}" class="block px-4 py-3 rounded-xl hover:bg-white/20 transition">Settings</a>
+    <nav style="display:flex;flex-direction:column;gap:3px;">
+      <a href="{{ url_for('dashboard') }}" class="nav-link"><span></span>Dashboard</a>
+      <a href="{{ url_for('orders') }}"    class="nav-link"><span></span>Orders</a>
+      <a href="{{ url_for('customers') }}" class="nav-link active"><span></span>Customers</a>
+      <a href="{{ url_for('reports') }}"   class="nav-link"><span></span>Reports</a>
+      <a href="{{ url_for('settings') }}"  class="nav-link"><span></span>Activity Logs</a>
     </nav>
   </div>
-  <div class="mt-10 flex flex-col gap-2">
-    <p class="text-sm opacity-80">{{ user }}</p>
-    <p class="text-xs opacity-60">admin@laundry.com</p>
-    <a href="{{ url_for('logout') }}" class="mt-3 block px-4 py-2 rounded-xl bg-red-500 hover:bg-red-400 text-white text-sm text-center transition">Log Out</a>
+  <div class="sb-user">
+    <div class="sb-uname">{{ user }}</div>
+    <div class="sb-uemail">admin@laundry.com</div>
+    <a href="{{ url_for('logout') }}" class="sb-logout">Log Out</a>
   </div>
 </aside>
 
-<div id="overlay" class="fixed inset-0 bg-black/40 hidden z-30"></div>
+<div id="overlay"></div>
 
-<!-- MAIN -->
-<div class="relative z-10 p-6 text-white">
-  <div class="flex justify-between items-center mb-8">
-    <button id="openSidebar" class="p-3 rounded-xl bg-white/20 hover:bg-white/30 transition">☰</button>
-    <button onclick="toggleDark()" class="px-5 py-2 rounded-full bg-white/20 hover:bg-white/30 transition">🌙</button>
+<!-- ══════ MAIN ══════ -->
+<div id="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
+      <button id="openSidebar" aria-label="Open sidebar">☰</button>
+      <div>
+        <h2 class="page-title">Customers <em>List</em></h2>
+      </div>
+    </div>
+    <button id="themeToggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span id="themeIcon">☀</span>
+      <span id="themeLabel">Theme</span>
+    </button>
   </div>
 
-  <div class="mb-8">
-    <h2 class="text-3xl font-bold">Customers Management</h2>
-    <p class="text-white/70 text-sm mt-2">View all customer information.</p>
+  <!-- Header -->
+  <div class="page-header">
+    <div class="live-tag">Customers &nbsp;·&nbsp; Auto-refresh</div>
+    <p class="page-sub">View and search all customer records from laundry orders.</p>
   </div>
 
-  <div class="flex flex-col sm:flex-row justify-between mb-4 gap-2">
-    <input type="text" id="searchCustomer" placeholder="Search customers..." class="px-4 py-2 rounded-xl text-black w-full sm:w-1/3">
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <input type="text" id="searchCustomer" class="search-input" placeholder="🔍  Search customers…">
   </div>
+
+  <!-- Divider -->
+  <div class="divider"><div class="rule"></div><div class="cross"></div><div class="rule"></div></div>
 
   <!-- Desktop Table -->
-  <div class="glass p-6 rounded-2xl shadow-lg overflow-x-auto hidden sm:block">
-    <table class="min-w-full text-left table-auto">
-      <thead>
-        <tr class="border-b border-white/30">
-          <th class="px-4 py-2">Order ID</th>
-          <th class="px-4 py-2">Name</th>
-          <th class="px-4 py-2">Phone</th>
-          <th class="px-4 py-2">Total Spent</th>
-          <th class="px-4 py-2">Last Order</th>
-          <th class="px-4 py-2">Status</th>
-        </tr>
-      </thead>
-      <tbody id="customerTbody"></tbody>
-    </table>
-    <p id="emptyState" class="text-center text-white/70 mt-6 hidden">No customers yet.</p>
+  <div class="glass table-card">
+    <div class="corner-acc"></div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Total Spent</th>
+            <th>Last Order</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="customerTbody"></tbody>
+      </table>
+      <div class="empty-state" id="emptyState">No customers found.</div>
+    </div>
   </div>
 
   <!-- Mobile Cards -->
-  <div class="sm:hidden flex flex-col gap-4" id="mobileCustomerCards"></div>
+  <div class="customer-cards" id="mobileCards"></div>
+  <div class="empty-state" id="emptyMobile" style="display:none;"></div>
+
+</div><!-- /main -->
+
+<!-- Ticker -->
+<div class="ticker-wrap" aria-hidden="true">
+  <div class="ticker-inner">
+    <span class="ticker-item">Fast Pickup</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Order Tracking</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Premium Care</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Same-Day Service</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Fresh Every Time</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Laundry Lounge</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Fast Pickup</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Order Tracking</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Premium Care</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Same-Day Service</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Fresh Every Time</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Laundry Lounge</span><span class="ticker-dot"></span>
+  </div>
 </div>
 
 <script>
-// Dark Mode
-function toggleDark() {
-  document.documentElement.classList.toggle('dark');
-  localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+/* ─── Theme ────────────────────────── */
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.dataset.theme === 'dark';
+  html.dataset.theme = isDark ? 'light' : 'dark';
+  document.getElementById('themeIcon').textContent = isDark ? '☀' : '☽';
+  localStorage.setItem('ll-theme', html.dataset.theme);
 }
-if(localStorage.getItem('theme')==='dark'){document.documentElement.classList.add('dark');}
+(function() {
+  const saved = localStorage.getItem('ll-theme');
+  if (saved) {
+    document.documentElement.dataset.theme = saved;
+    const icon = document.getElementById('themeIcon');
+    if (icon) icon.textContent = saved === 'dark' ? '☽' : '☀';
+  }
+})();
 
-// Sidebar
-const sidebar=document.getElementById('sidebar'), overlay=document.getElementById('overlay');
-openSidebar.onclick=()=>{sidebar.classList.remove('-translate-x-full'); overlay.classList.remove('hidden');}
-closeSidebar.onclick=()=>{sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden');}
-overlay.onclick=()=>{sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden');}
+/* ─── Sidebar ──────────────────────── */
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('overlay');
+const mainEl  = document.getElementById('main');
+let sidebarOpen = false;
 
-// Bubble generator
-setInterval(()=>{
-  const bubble=document.createElement('div');
-  bubble.className='bubble';
-  const size=Math.random()*60+20;
-  bubble.style.width=size+'px';
-  bubble.style.height=size+'px';
-  bubble.style.left=Math.random()*100+'vw';
-  bubble.style.animationDuration=(Math.random()*10+12)+'s';
-  document.getElementById('bubbles').appendChild(bubble);
-  setTimeout(()=>bubble.remove(),20000);
-},700);
+function openSidebar() {
+  sidebarOpen = true;
+  sidebar.classList.add('open');
+  if (window.innerWidth >= 1024) {
+    mainEl.classList.add('sidebar-open');
+    overlay.classList.remove('visible');
+  } else {
+    overlay.classList.add('visible');
+  }
+}
+function closeSidebar() {
+  sidebarOpen = false;
+  sidebar.classList.remove('open');
+  overlay.classList.remove('visible');
+  mainEl.classList.remove('sidebar-open');
+}
+function toggleSidebar() { sidebarOpen ? closeSidebar() : openSidebar(); }
 
-// -------------------
-// Fetch customers from API
-// -------------------
-async function fetchCustomers() {
-    try {
-        const res = await fetch('/api/customers'); // should return [{orderId,name,phone,spent,lastOrder,status}]
-        if(!res.ok) throw new Error("Failed to fetch customers");
-        return await res.json();
-    } catch(err) {
-        console.error(err);
-        return [];
+document.getElementById('openSidebar').addEventListener('click', toggleSidebar);
+document.getElementById('closeSidebar').addEventListener('click', closeSidebar);
+overlay.addEventListener('click', closeSidebar);
+
+let lastWasDesktop = window.innerWidth >= 1024;
+window.addEventListener('resize', () => {
+  const isDesktop = window.innerWidth >= 1024;
+  if (isDesktop && !lastWasDesktop) { openSidebar(); overlay.classList.remove('visible'); }
+  else if (!isDesktop && lastWasDesktop) { closeSidebar(); }
+  lastWasDesktop = isDesktop;
+  if (isDesktop) overlay.classList.remove('visible');
+  updateThemeLabel();
+});
+if (window.innerWidth >= 1024) openSidebar();
+else closeSidebar();
+
+function updateThemeLabel() {
+  document.getElementById('themeLabel').style.display = window.innerWidth >= 400 ? 'inline' : 'none';
+}
+updateThemeLabel();
+
+/* ─── Bubbles ──────────────────────── */
+(function() {
+  const c = document.getElementById('bubbles');
+  for (let i = 0; i < 18; i++) {
+    const b = document.createElement('div'); b.classList.add('bubble');
+    const s = Math.random() * 60 + 12;
+    b.style.cssText = `width:${s}px;height:${s}px;left:${Math.random()*100}%;animation-duration:${Math.random()*12+6}s;animation-delay:${Math.random()*7}s;`;
+    c.appendChild(b);
+  }
+})();
+
+/* ─── Badge helper ─────────────────── */
+function badgeHTML(status) {
+  const cls = (status || '').toLowerCase() === 'active' ? 'badge-active' : 'badge-inactive';
+  return `<span class="badge ${cls}">${status || '—'}</span>`;
+}
+function fmtAmt(v) { return '₱' + parseFloat(v || 0).toFixed(2); }
+
+/* ─── Render ───────────────────────── */
+let customersCache = [];
+
+function renderCustomers(customers) {
+  const tbody   = document.getElementById('customerTbody');
+  const mobile  = document.getElementById('mobileCards');
+  const empty   = document.getElementById('emptyState');
+  const emptyM  = document.getElementById('emptyMobile');
+
+  tbody.innerHTML = '';
+  mobile.innerHTML = '';
+
+  const none = customers.length === 0;
+  empty.classList.toggle('visible', none);
+  emptyM.style.display = none ? 'block' : 'none';
+  if (none) { emptyM.textContent = 'No customers found.'; emptyM.classList.add('empty-state', 'visible'); }
+
+  customers.forEach((c, i) => {
+    // Desktop row
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="px-4 py-2 td-id">${c.orderId}</td>
+      <td class="px-4 py-2 td-name">${c.name}</td>
+      <td class="px-4 py-2">${c.phone}</td>
+      <td class="px-4 py-2 td-spent">${fmtAmt(c.spent)}</td>
+      <td class="px-4 py-2">${c.lastOrder}</td>
+      <td class="px-4 py-2">${badgeHTML(c.status)}</td>
+    `;
+    tbody.appendChild(tr);
+
+    // Mobile card
+    const card = document.createElement('div');
+    card.className = 'customer-card';
+    card.style.animationDelay = (i * 0.05) + 's';
+    card.innerHTML = `
+      <div class="corner-acc" style="border-radius:0 14px 0 0;"></div>
+      <div class="card-row">
+        <span class="card-name">${c.name}</span>
+        ${badgeHTML(c.status)}
+      </div>
+      <div class="card-id" style="margin-top:4px;">${c.orderId}</div>
+      <div class="card-meta">
+        <span><span class="label">Phone</span> ${c.phone}</span>
+        <span><span class="label">Spent</span> <span class="card-spent">${fmtAmt(c.spent)}</span></span>
+        <span><span class="label">Last Order</span> ${c.lastOrder}</span>
+      </div>
+    `;
+    mobile.appendChild(card);
+  });
+}
+
+/* ─── Fetch ────────────────────────── */
+async function loadCustomers() {
+  try {
+    const res = await fetch('/api/customers');
+    if (!res.ok) throw new Error('Fetch failed');
+    customersCache = await res.json();
+    renderCustomers(customersCache);
+  } catch(e) { console.error(e); }
+}
+loadCustomers();
+setInterval(async () => {
+  try {
+    const res = await fetch('/api/customers');
+    if (!res.ok) return;
+    const latest = await res.json();
+    if (JSON.stringify(latest) !== JSON.stringify(customersCache)) {
+      customersCache = latest;
+      renderCustomers(customersCache);
     }
-}
+  } catch(e) {}
+}, 10000);
 
-async function renderCustomers() {
-    const customers = await fetchCustomers();
-    const tbody = document.getElementById('customerTbody');
-    const mobile = document.getElementById('mobileCustomerCards');
-    const empty = document.getElementById('emptyState');
-
-    tbody.innerHTML = '';
-    mobile.innerHTML = '';
-    empty.classList.toggle('hidden', customers.length !== 0);
-
-    customers.forEach(c => {
-        tbody.innerHTML += `
-<tr>
-<td class="px-4 py-2">${c.orderId}</td>
-<td class="px-4 py-2">${c.name}</td>
-<td class="px-4 py-2">${c.phone}</td>
-<td class="px-4 py-2">₱${parseFloat(c.spent).toFixed(2)}</td>
-<td class="px-4 py-2">${c.lastOrder}</td>
-<td class="px-4 py-2"><span class="px-2 py-1 rounded-full bg-green-200 text-green-800 text-sm">${c.status}</span></td>
-</tr>`;
-
-        mobile.innerHTML += `
-<div class="glass p-4 rounded-xl">
-<h3 class="font-bold">Order ID: ${c.orderId}</h3>
-<p>Name: ${c.name}</p>
-<p>Phone: ${c.phone}</p>
-<p>Total Spent: ₱${parseFloat(c.spent).toFixed(2)}</p>
-<p>Last Order: ${c.lastOrder}</p>
-<p>Status: <span class="px-2 py-1 rounded-full bg-green-200 text-green-800 text-sm">${c.status}</span></p>
-</div>`;
-    });
-}
-
-// Search
-searchCustomer.oninput = () => {
-    const value = searchCustomer.value.toLowerCase();
-    document.querySelectorAll('#customerTbody tr').forEach(row => {
-        row.style.display = row.innerText.toLowerCase().includes(value) ? '' : 'none';
-    });
-    document.querySelectorAll('#mobileCustomerCards .glass').forEach(card => {
-        card.style.display = card.innerText.toLowerCase().includes(value) ? '' : 'none';
-    });
-};
-
-// Initial render + auto-refresh
-renderCustomers();
-setInterval(renderCustomers, 10000); // refresh every 10s
+/* ─── Search ───────────────────────── */
+document.getElementById('searchCustomer').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('#customerTbody tr').forEach(tr => {
+    tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+  document.querySelectorAll('#mobileCards .customer-card').forEach(card => {
+    card.style.display = card.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+});
 </script>
 </body>
 </html>

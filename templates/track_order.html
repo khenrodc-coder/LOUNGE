@@ -1,206 +1,637 @@
 <!DOCTYPE html>
-<html lang="en" class="transition duration-300">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Track Order - Laundry Lounge</title>
+<title>Track Your Order — Laundry Lounge</title>
 
-<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
-<script> tailwind.config = { darkMode: 'class' } </script>
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
-    
-body { 
-    font-family:'DM Sans',sans-serif; 
-    overflow-x:hidden; 
-    background:#111827; 
-    color:white; 
-}
-h1,h2,h3{ font-family:'Poppins',sans-serif; }
+/* ─── RESET ─────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* Glass Effect */
-.glass{
-    background: rgba(255,255,255,0.15);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius:20px;
-    padding:2rem;
-    transition: box-shadow 0.3s, transform 0.3s;
-    width: 100%;
-    max-width: 100%;
+/* ─── THEME TOKENS ───────────────────────── */
+:root {
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.glass:hover{
-    box-shadow: 0 0 20px rgba(255,255,255,0.5);
-    transform: translateY(-3px);
+[data-theme="light"] {
+  --bg:          #F4EFE6;
+  --bg-alt:      #EDE7DB;
+  --surface:     rgba(255,255,255,0.72);
+  --surface-hov: rgba(255,255,255,0.9);
+  --border:      rgba(0,0,0,0.10);
+  --border-acc:  rgba(196,79,31,0.4);
+  --text:        #1A1309;
+  --text-2:      #5A4E3A;
+  --text-3:      rgba(90,78,58,0.55);
+  --accent:      #C44F1F;
+  --accent-2:    #3E6B45;
+  --accent-glow: rgba(196,79,31,0.22);
+  --mark-bg:     #C44F1F;
+  --mark-text:   #fff;
+  --shadow:      0 20px 60px rgba(60,30,0,0.12), 0 4px 20px rgba(60,30,0,0.06);
+  --shadow-sm:   0 4px 16px rgba(60,30,0,0.08);
+  --deco-op:     0.05;
+  --toggle-bg:   rgba(0,0,0,0.06);
+  --bubble-a:    rgba(196,79,31,0.15);
+  --bubble-b:    rgba(196,79,31,0.04);
+  --th-bg:       rgba(196,79,31,0.08);
+  --row-hover:   rgba(196,79,31,0.05);
+  --divider:     rgba(0,0,0,0.07);
+  --footer-bg:   rgba(244,239,230,0.85);
+  --footer-border: rgba(0,0,0,0.08);
 }
-.dark .glass{
-    background: rgba(30,41,59,0.35);
-    border: 1px solid rgba(255,255,255,0.08);
-}
-
-/* Bubble Background */
-.bubbles{
-    position: fixed;
-    inset: 0;
-    overflow: hidden;
-    z-index: 0;
-    pointer-events: none;
-}
-.bubble{
-    position: absolute;
-    bottom: -150px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(255,255,255,0.4) 40%, rgba(255,255,255,0.2) 60%, transparent 70%);
-    animation: floatUp linear infinite;
-    opacity: 0.6;
-    backdrop-filter: blur(4px);
-}
-@keyframes floatUp{
-    0%{ transform: translateY(0) scale(1); opacity: 0; }
-    10%{ opacity: 0.6; }
-    90%{ opacity: 0.6; }
-    100%{ transform: translateY(-120vh) scale(1.2); opacity: 0; }
-}
-
-/* Decorative Lines & Circles */
-.decorative-line {
-    position: absolute;
-    width: 2px;
-    height: 150px;
-    background: linear-gradient(to bottom, rgba(255,255,255,0.5), transparent);
-    transform: rotate(25deg);
-    opacity: 0.3;
-    z-index: 0;
-    pointer-events: none;
-}
-.decorative-line.reverse { transform: rotate(-25deg); }
-.decorative-circle {
-    position: absolute;
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.1);
-    box-shadow: 0 0 20px rgba(255,255,255,0.2);
-    z-index: 0;
-    pointer-events: none;
+[data-theme="dark"] {
+  --bg:          #100E0A;
+  --bg-alt:      #1A1610;
+  --surface:     rgba(30,25,18,0.82);
+  --surface-hov: rgba(40,34,24,0.92);
+  --border:      rgba(255,255,255,0.09);
+  --border-acc:  rgba(232,110,50,0.45);
+  --text:        #F0E8D8;
+  --text-2:      #B0A088;
+  --text-3:      rgba(176,160,136,0.55);
+  --accent:      #E8703A;
+  --accent-2:    #74BF82;
+  --accent-glow: rgba(232,112,58,0.3);
+  --mark-bg:     #E8703A;
+  --mark-text:   #fff;
+  --shadow:      0 20px 60px rgba(0,0,0,0.55), 0 4px 20px rgba(0,0,0,0.3);
+  --shadow-sm:   0 4px 16px rgba(0,0,0,0.35);
+  --deco-op:     0.04;
+  --toggle-bg:   rgba(255,255,255,0.09);
+  --bubble-a:    rgba(232,112,58,0.12);
+  --bubble-b:    rgba(232,112,58,0.03);
+  --th-bg:       rgba(232,112,58,0.08);
+  --row-hover:   rgba(232,112,58,0.05);
+  --divider:     rgba(255,255,255,0.07);
+  --footer-bg:   rgba(16,12,8,0.92);
+  --footer-border: rgba(255,255,255,0.07);
 }
 
-/* Table */
-table { width:100%; border-collapse: separate; border-spacing:0 8px; min-width:600px; }
-thead tr th { 
-    text-align:left; padding:0.75rem 1rem; font-weight:600; font-size:1rem; color:#d1d5db; 
-}
-tbody tr { 
-    background: rgba(255,255,255,0.05); border-radius:12px; transition: transform 0.2s, box-shadow 0.2s; 
-}
-tbody tr:hover { transform: translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.5);}
-td { padding:0.75rem 1rem; font-size:0.95rem; color:white; }
-.status-badge { display:inline-block; padding:0.25rem 0.75rem; border-radius:9999px; font-weight:600; font-size:0.85rem; color:white; }
-.status-in-progress { background:#10b981; }
-.status-completed { background:#3b82f6; }
-.status-pending { background:#f59e0b; }
-
-/* Header */
-header { text-align:center; margin-bottom:2rem; padding: 1rem; }
-header h1 { font-size:2.25rem; font-weight:700; margin:0; }
-header p { font-size:1rem; color:#fcd34d; margin-top:0.5rem; font-style:italic; }
-
-/* Footer */
-footer { text-align:center; padding:2rem 1rem; font-size:0.9rem; color:#9ca3af; margin-top:auto; background:rgba(0,0,0,0.2); backdrop-filter: blur(10px); border-top:1px solid rgba(255,255,255,0.1);}
-
-/* Responsive tweaks */
-@media (max-width: 768px){
-    header h1 { font-size:1.75rem; }
-    header p { font-size:0.9rem; }
-    table { min-width: 100%; font-size:0.85rem; }
-    .glass { padding:1rem; }
-}
-@media (max-width: 480px){
-    header h1 { font-size:1.5rem; }
-    header p { font-size:0.8rem; }
-    table thead { display:none; }
-    table, tbody, tr, td { display:block; width:100%; }
-    tr { margin-bottom:1rem; }
-    td { padding:0.5rem; text-align:right; position:relative; }
-    td::before { content: attr(data-label); position:absolute; left:0; width:50%; padding-left:1rem; font-weight:600; text-align:left; color:#d1d5db; }
+/* ─── BASE ──────────────────────────────── */
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: background 0.4s ease, color 0.4s ease;
 }
 
+/* ─── DECO BG ───────────────────────────── */
+.deco-bg { pointer-events: none; position: fixed; inset: 0; overflow: hidden; z-index: 0; }
+.deco-word {
+  font-family: 'Playfair Display', serif; font-weight: 900;
+  font-size: clamp(6rem, 18vw, 20rem); line-height: 0.82;
+  color: var(--text); opacity: var(--deco-op); position: absolute;
+  white-space: nowrap; user-select: none; letter-spacing: -0.04em; transition: opacity 0.4s;
+}
+.deco-word.w1 { top: -4%; left: -3%; transform: rotate(-3deg); }
+.deco-word.w2 { bottom: 0; right: -4%; transform: rotate(2deg); font-style: italic; }
+@media (max-width: 600px) { .deco-word { display: none; } }
+
+/* ─── BUBBLES ───────────────────────────── */
+.bubbles { position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+.bubble {
+  position: absolute; bottom: -150px; border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, var(--bubble-a), var(--bubble-b) 60%, transparent 80%);
+  border: 1px solid var(--border-acc);
+  animation: floatUp linear infinite; opacity: 0;
+}
+@keyframes floatUp {
+  0%   { transform: translateY(0) scale(1); opacity: 0; }
+  10%  { opacity: 0.55; }
+  90%  { opacity: 0.2; }
+  100% { transform: translateY(-115vh) scale(1.3); opacity: 0; }
+}
+
+/* ─── THEME TOGGLE ──────────────────────── */
+#themeToggle {
+  position: fixed; top: 16px; right: 16px; z-index: 50;
+  width: 42px; height: 42px; border-radius: 50%;
+  background: var(--toggle-bg); border: 1px solid var(--border);
+  backdrop-filter: blur(12px); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.05rem; color: var(--text);
+  transition: border-color 0.2s, transform 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+#themeToggle:hover { border-color: var(--accent); transform: scale(1.08) rotate(15deg); }
+
+/* ─── HEADER ────────────────────────────── */
+header {
+  position: relative; z-index: 10;
+  text-align: center;
+  padding: clamp(2rem, 6vw, 4rem) 1.5rem clamp(1.5rem, 4vw, 2.5rem);
+  animation: fadeDown 0.9s var(--ease-expo) both;
+}
+
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.header-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem; letter-spacing: 0.3em;
+  text-transform: uppercase; color: var(--accent);
+  margin-bottom: 10px;
+}
+.header-logo {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900; font-size: clamp(2.2rem, 8vw, 4.5rem);
+  line-height: 0.88; letter-spacing: -0.03em;
+  color: var(--text); transition: color 0.4s;
+}
+.header-logo span { font-style: italic; font-weight: 400; color: var(--accent); }
+.header-tagline {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--text-3);
+  margin-top: 10px;
+}
+
+/* Wash animation (from login page) */
+.wash-anim {
+  position: relative; width: 40px; height: 40px;
+  margin: 16px auto 0;
+}
+.wash-ring { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid var(--border); }
+.wash-arc {
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 1.5px solid transparent;
+  border-top-color: var(--accent); border-right-color: var(--accent);
+  animation: washSpin 2.2s linear infinite;
+}
+.wash-arc-2 {
+  position: absolute; inset: 8px; border-radius: 50%;
+  border: 1.5px solid transparent;
+  border-bottom-color: var(--accent-2);
+  animation: washSpin 3.5s linear infinite reverse; opacity: 0.6;
+}
+.wash-dot {
+  position: absolute; width: 5px; height: 5px;
+  background: var(--accent); border-radius: 50%;
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+}
+@keyframes washSpin { to { transform: rotate(360deg); } }
+
+/* ─── MAIN ──────────────────────────────── */
+main {
+  flex: 1; position: relative; z-index: 10;
+  width: 100%; max-width: 900px;
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 4vw, 2rem) clamp(1.5rem, 4vw, 2.5rem);
+}
+
+/* ─── TRACK SECTION HEADER ──────────────── */
+.section-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 5px 12px 5px 8px; background: var(--mark-bg); color: var(--mark-text);
+  border-radius: 4px; font-family: 'DM Mono', monospace;
+  font-size: 0.6rem; font-weight: 500; letter-spacing: 0.2em;
+  text-transform: uppercase; margin-bottom: 10px;
+}
+.section-tag::before {
+  content: ''; width: 6px; height: 6px;
+  background: rgba(255,255,255,0.8); border-radius: 50%;
+  animation: livePulse 1.8s ease-in-out infinite;
+}
+@keyframes livePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+
+.section-title {
+  font-family: 'Playfair Display', serif; font-weight: 900;
+  font-size: clamp(1.6rem, 5vw, 2.6rem); line-height: 0.9;
+  letter-spacing: -0.03em; color: var(--text); transition: color 0.4s;
+  margin-bottom: 4px;
+}
+.section-title em { font-style: italic; font-weight: 400; color: var(--accent); }
+.section-sub { font-size: 0.78rem; color: var(--text-3); font-weight: 300; margin-bottom: 1.5rem; }
+
+/* ─── GLASS CARD ────────────────────────── */
+.track-card {
+  position: relative; border-radius: 20px;
+  background: var(--surface);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  padding: clamp(1.25rem, 4vw, 2rem);
+  transition: box-shadow 0.3s, border-color 0.4s, background 0.4s;
+  animation: cardEnter 0.9s var(--ease-expo) 0.3s both;
+}
+@keyframes cardEnter {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.track-card:hover { box-shadow: var(--shadow); border-color: var(--border-acc); }
+
+.card-corner {
+  position: absolute; top: -1px; right: -1px;
+  width: 52px; height: 52px;
+  border-top: 2px solid var(--accent);
+  border-right: 2px solid var(--accent);
+  border-radius: 0 20px 0 0;
+  opacity: 0.45; pointer-events: none;
+  transition: opacity 0.2s;
+}
+.track-card:hover .card-corner { opacity: 1; }
+
+/* ─── DIVIDER ───────────────────────────── */
+.divider { display: flex; align-items: center; gap: 12px; margin: 1.25rem 0; }
+.divider .rule { flex: 1; height: 1px; background: var(--border); }
+.divider .cross { width: 12px; height: 12px; position: relative; opacity: 0.4; }
+.divider .cross::before, .divider .cross::after { content: ''; position: absolute; background: var(--text); border-radius: 2px; }
+.divider .cross::before { width: 100%; height: 1px; top: 50%; transform: translateY(-50%); }
+.divider .cross::after  { width: 1px; height: 100%; left: 50%; transform: translateX(-50%); }
+
+/* ─── ORDER INFO GRID ───────────────────── */
+.order-grid {
+  display: grid;
+  gap: clamp(0.75rem, 2vw, 1rem);
+  grid-template-columns: repeat(2, 1fr);
+  margin-bottom: 1.25rem;
+}
+@media (min-width: 640px) { .order-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 360px) { .order-grid { grid-template-columns: 1fr; } }
+
+.info-item {
+  background: var(--th-bg); border: 1px solid var(--border);
+  border-radius: 12px; padding: clamp(0.8rem, 2.5vw, 1.1rem);
+  transition: border-color 0.2s, transform 0.2s;
+  animation: fadeUp 0.5s var(--ease-expo) both;
+}
+.info-item:hover { border-color: var(--border-acc); transform: translateY(-2px); }
+@media (hover: none) { .info-item { transform: none !important; } }
+
+/* stagger */
+.info-item:nth-child(1) { animation-delay: 0.4s; }
+.info-item:nth-child(2) { animation-delay: 0.46s; }
+.info-item:nth-child(3) { animation-delay: 0.52s; }
+.info-item:nth-child(4) { animation-delay: 0.58s; }
+.info-item:nth-child(5) { animation-delay: 0.64s; }
+.info-item:nth-child(6) { animation-delay: 0.70s; }
+
+.info-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.56rem; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--text-3); margin-bottom: 5px;
+}
+.info-value {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700; font-size: clamp(0.9rem, 2.5vw, 1.05rem);
+  color: var(--text); line-height: 1.2; transition: color 0.4s;
+}
+.info-value.accent { color: var(--accent); }
+
+/* ─── STATUS BADGE ──────────────────────── */
+.status-wrap { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.status-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px 6px 10px; border-radius: 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase;
+  font-weight: 500; color: #fff;
+}
+.status-badge::before {
+  content: ''; width: 7px; height: 7px; border-radius: 50%;
+  background: rgba(255,255,255,0.8);
+  animation: livePulse 1.8s ease-in-out infinite;
+}
+.s-new        { background: #3B82F6; }
+.s-washing    { background: #EAB308; }
+.s-drying     { background: #F97316; }
+.s-folding    { background: #A855F7; }
+.s-topickup   { background: #6366F1; }
+.s-received   { background: #EC4899; }
+.s-completed  { background: #16A34A; }
+
+/* ─── PROGRESS STEPPER ──────────────────── */
+.stepper {
+  display: flex; align-items: flex-start;
+  gap: 0; overflow-x: auto;
+  padding: 1rem 0 0.5rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.stepper::-webkit-scrollbar { display: none; }
+
+.step {
+  display: flex; flex-direction: column; align-items: center;
+  flex: 1; min-width: 60px; position: relative;
+}
+/* Connector line */
+.step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 14px; left: 50%;
+  width: 100%; height: 2px;
+  background: var(--border);
+  z-index: 0;
+  transition: background 0.4s;
+}
+.step.done:not(:last-child)::after { background: var(--accent); }
+
+.step-dot {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 2px solid var(--border); background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  position: relative; z-index: 1;
+  transition: border-color 0.3s, background 0.3s;
+  flex-shrink: 0;
+}
+.step.done .step-dot {
+  border-color: var(--accent); background: var(--accent);
+}
+.step.active .step-dot {
+  border-color: var(--accent); background: var(--bg);
+  box-shadow: 0 0 0 4px var(--accent-glow);
+}
+.step-dot-inner {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--border); transition: background 0.3s;
+}
+.step.done .step-dot-inner  { background: #fff; }
+.step.active .step-dot-inner { background: var(--accent); }
+
+.step-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.52rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--text-3);
+  margin-top: 6px; text-align: center; line-height: 1.3;
+  transition: color 0.3s;
+}
+.step.done .step-label, .step.active .step-label { color: var(--accent); }
+
+/* ─── FOOTER ────────────────────────────── */
+footer {
+  position: relative; z-index: 10;
+  background: var(--footer-bg);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--footer-border);
+  padding: clamp(1.25rem, 4vw, 2rem) clamp(1rem, 4vw, 2rem);
+  transition: background 0.4s, border-color 0.4s;
+}
+
+.footer-inner {
+  max-width: 900px; margin: 0 auto;
+  display: grid; gap: 1rem;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px) { .footer-inner { grid-template-columns: repeat(3, 1fr); } }
+
+.footer-block { display: flex; flex-direction: column; gap: 4px; }
+.footer-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.56rem; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 2px;
+}
+.footer-value {
+  font-size: 0.82rem; color: var(--text-2); font-weight: 400; line-height: 1.5;
+}
+
+.footer-bottom {
+  max-width: 900px; margin: 1rem auto 0;
+  padding-top: 1rem; border-top: 1px solid var(--divider);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 8px;
+}
+.footer-copy {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.56rem; letter-spacing: 0.15em;
+  text-transform: uppercase; color: var(--text-3);
+}
+.footer-brand {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.9rem; font-weight: 700; color: var(--text-2);
+}
+.footer-brand span { font-style: italic; font-weight: 400; color: var(--accent); }
+
+/* ─── TICKER ─────────────────────────────── */
+.ticker-wrap { width: 100%; background: var(--accent); overflow: hidden; padding: 7px 0; position: relative; z-index: 10; transition: background 0.4s; }
+.ticker-inner { display: flex; white-space: nowrap; animation: ticker 22s linear infinite; }
+.ticker-item { font-family: 'DM Mono', monospace; font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; padding: 0 30px; color: rgba(255,255,255,0.9); }
+.ticker-dot { display: inline-block; width: 4px; height: 4px; background: rgba(255,255,255,0.5); border-radius: 50%; vertical-align: middle; margin: 0 14px; }
+@keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+/* ─── ANIMATIONS ────────────────────────── */
+@keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+
+/* ─── LANDSCAPE PHONES ──────────────────── */
+@media (max-height: 500px) and (orientation: landscape) {
+  header { padding: 1rem 1.5rem; }
+  .header-logo { font-size: 1.8rem; }
+  .deco-word { display: none; }
+  .wash-anim { display: none; }
+}
 </style>
 </head>
-<body class="min-h-screen flex flex-col bg-gradient-to-br from-gray-900 via-gray-800 to-black transition duration-500">
-  <!-- Bubble Background -->
-  <div class="bubbles" id="bubbles"></div>
 
-  <header>
-      <h1>Laundry Lounge</h1>
-      <p>From Stains to Sparkle</p>
-  </header>
+<body>
 
-  <!-- MAIN CONTENT -->
-  <main class="flex-grow relative z-10 mx-auto max-w-4xl p-4">
-    <div class="container"></div>
-      <section class="glass">
-          <h2 class="text-2xl font-bold mb-4 text-center">Track Your Order</h2>
+<div class="deco-bg" aria-hidden="true">
+  <div class="deco-word w1">TRACK</div>
+  <div class="deco-word w2">Order</div>
+</div>
+<div class="bubbles" id="bubbles"></div>
 
-          <!-- Decorative Lines & Circles -->
-          <div class="decorative-line" style="top:50px; left:20%;"></div>
-          <div class="decorative-line reverse" style="top:200px; left:65%;"></div>
-          <div class="decorative-circle" style="top:150px; left:10%;"></div>
-          <div class="decorative-circle" style="top:300px; left:75%; width:150px; height:150px;"></div>
+<!-- Theme toggle -->
+<button id="themeToggle" onclick="toggleTheme()" aria-label="Toggle theme">
+  <span id="themeIcon">☀</span>
+</button>
 
-          <div class="overflow-x-auto">
-              <table>
-                  <thead>
-                      <tr>
-                          <th>Order ID</th>
-                          <th>Customer</th>
-                          <th>Service</th>
-                          <th>Weight</th>
-                          <th>Pickup Date</th>
-                          <th>Amount</th>
-                          <th>Status</th>
-                      </tr>
-                  </thead>
-                  <tbody>
-<tr>
-<td data-label="Order ID">{{ order.transaction_id }}</td>
-<td data-label="Customer">{{ order.name }}</td>
-<td data-label="Service">{{ order.service }}</td>
-<td data-label="Weight">{{ order.weight }} kg</td>
-<td data-label="Pickup Date">{{ order.pickup }}</td>
-<td data-label="Amount">₱{{ order.amount }}</td>
-<td data-label="Status">
-<span class="status-badge status-in-progress">{{ order.status }}</span>
-</td>
-</tr>
-</tbody>
-              </table>
-          </div>
-      </section>
-  </main>
+<!-- ══════ HEADER ══════ -->
+<header>
+  <div class="header-eyebrow">Est. 2024 · Nueva Ecija</div>
+  <div class="header-logo">Laundry <span>Lounge</span></div>
+  <div class="header-tagline">From Stains to Sparkle</div>
+  <div class="wash-anim" aria-hidden="true">
+    <div class="wash-ring"></div>
+    <div class="wash-arc"></div>
+    <div class="wash-arc-2"></div>
+    <div class="wash-dot"></div>
+  </div>
+</header>
 
-  <footer>
-    <p><strong>Location:</strong> Maharlika Highway Cojuangco, Santa Rosa Nueva Ecija</p>
-    <p><strong>Contact:</strong> +63 9399411125</p>
-    <p><strong>Services:</strong> Wash & Fold, Dry Cleaning, Express Service</p>
-  </footer>
+<!-- Ticker -->
+<div class="ticker-wrap" aria-hidden="true">
+  <div class="ticker-inner">
+    <span class="ticker-item">Fast Pickup</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Order Tracking</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Premium Care</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Same-Day Service</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Fresh Every Time</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Laundry Lounge</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Fast Pickup</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Order Tracking</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Premium Care</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Same-Day Service</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Fresh Every Time</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Laundry Lounge</span><span class="ticker-dot"></span>
+  </div>
+</div>
 
-  <script>
-  // Generate bubbles dynamically
-  const bubbleContainer = document.getElementById('bubbles');
-  for(let i=0;i<30;i++){
-      const bubble = document.createElement('div');
-      bubble.classList.add('bubble');
-      bubble.style.width = bubble.style.height = `${Math.random()*60+20}px`;
-      bubble.style.left = `${Math.random()*100}%`;
-      bubble.style.animationDuration = `${Math.random()*10+5}s`;
-      bubble.style.animationDelay = `${Math.random()*5}s`;
-      bubbleContainer.appendChild(bubble);
+<!-- ══════ MAIN ══════ -->
+<main>
+
+  <div class="section-tag">Live Tracking</div>
+  <h1 class="section-title">Track Your <em>Order</em></h1>
+  <p class="section-sub">Real-time status for your laundry order.</p>
+
+  <div class="track-card">
+    <div class="card-corner"></div>
+
+    <!-- Order ID + status -->
+    <div class="status-wrap" style="margin-bottom:1.1rem;">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.56rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-3);margin-bottom:4px;">Order ID</div>
+        <div style="font-family:'Playfair Display',serif;font-size:clamp(1rem,3vw,1.3rem);font-weight:700;color:var(--accent);">{{ order.transaction_id }}</div>
+      </div>
+      <span class="status-badge {{ 's-' ~ order.status.lower().replace(' ', '') }}" id="statusBadge">{{ order.status }}</span>
+    </div>
+
+    <!-- Divider -->
+    <div class="divider"><div class="rule"></div><div class="cross"></div><div class="rule"></div></div>
+
+    <!-- Progress stepper -->
+    <div class="stepper" id="stepper" aria-label="Order progress">
+      <div class="step" data-step="New">
+        <div class="step-dot"><div class="step-dot-inner"></div></div>
+        <div class="step-label">New</div>
+      </div>
+      <div class="step" data-step="Washing">
+        <div class="step-dot"><div class="step-dot-inner"></div></div>
+        <div class="step-label">Washing</div>
+      </div>
+      <div class="step" data-step="Drying">
+        <div class="step-dot"><div class="step-dot-inner"></div></div>
+        <div class="step-label">Drying</div>
+      </div>
+      <div class="step" data-step="Folding">
+        <div class="step-dot"><div class="step-dot-inner"></div></div>
+        <div class="step-label">Folding</div>
+      </div>
+      <div class="step" data-step="To Pickup">
+        <div class="step-dot"><div class="step-dot-inner"></div></div>
+        <div class="step-label">To Pickup</div>
+      </div>
+      <div class="step" data-step="Received">
+        <div class="step-dot"><div class="step-dot-inner"></div></div>
+        <div class="step-label">Received</div>
+      </div>
+      <div class="step" data-step="Completed">
+        <div class="step-dot"><div class="step-dot-inner"></div></div>
+        <div class="step-label">Done</div>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div class="divider"><div class="rule"></div><div class="cross"></div><div class="rule"></div></div>
+
+    <!-- Order details grid -->
+    <div class="order-grid">
+      <div class="info-item">
+        <div class="info-label">Customer</div>
+        <div class="info-value">{{ order.name }}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Service</div>
+        <div class="info-value">{{ order.service }}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Weight</div>
+        <div class="info-value">{{ order.weight }}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Order Date</div>
+        <div class="info-value">{{ order.date }}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Pickup Date</div>
+        <div class="info-value">{{ order.pickup }}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Amount</div>
+        <div class="info-value accent">₱{{ order.amount }}</div>
+      </div>
+    </div>
+
+  </div><!-- /track-card -->
+
+</main>
+
+<!-- ══════ FOOTER ══════ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-block">
+      <div class="footer-label">Location</div>
+      <div class="footer-value">Maharlika Hwy, Cojuangco<br>Sta. Rosa, Nueva Ecija</div>
+    </div>
+    <div class="footer-block">
+      <div class="footer-label">Contact</div>
+      <div class="footer-value">+63 939 941 1125</div>
+    </div>
+    <div class="footer-block">
+      <div class="footer-label">Services</div>
+      <div class="footer-value">Wash &amp; Fold · Dry Cleaning<br>Express Service</div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2024 Laundry Lounge · All rights reserved</div>
+    <div class="footer-brand">Laundry <span>Lounge</span></div>
+  </div>
+</footer>
+
+<script>
+/* ─── Theme ────────────────────────── */
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.dataset.theme === 'dark';
+  html.dataset.theme = isDark ? 'light' : 'dark';
+  document.getElementById('themeIcon').textContent = isDark ? '☀' : '☽';
+  localStorage.setItem('ll-theme', html.dataset.theme);
+}
+(function() {
+  const saved = localStorage.getItem('ll-theme');
+  if (saved) {
+    document.documentElement.dataset.theme = saved;
+    const icon = document.getElementById('themeIcon');
+    if (icon) icon.textContent = saved === 'dark' ? '☽' : '☀';
   }
-  </script>
+})();
+
+/* ─── Bubbles ──────────────────────── */
+(function() {
+  const c = document.getElementById('bubbles');
+  for (let i = 0; i < 22; i++) {
+    const b = document.createElement('div'); b.classList.add('bubble');
+    const s = Math.random() * 60 + 12;
+    b.style.cssText = `width:${s}px;height:${s}px;left:${Math.random()*100}%;animation-duration:${Math.random()*12+6}s;animation-delay:${Math.random()*7}s;`;
+    c.appendChild(b);
+  }
+})();
+
+/* ─── Progress Stepper ─────────────── */
+const STEPS = ["New", "Washing", "Drying", "Folding", "To Pickup", "Received", "Completed"];
+
+function updateStepper(currentStatus) {
+  const currentIndex = STEPS.indexOf(currentStatus);
+  document.querySelectorAll('#stepper .step').forEach((el, i) => {
+    el.classList.remove('done', 'active');
+    if (i < currentIndex)      el.classList.add('done');
+    else if (i === currentIndex) el.classList.add('active');
+  });
+}
+
+// Read status from the rendered Flask template value
+const statusEl = document.getElementById('statusBadge');
+if (statusEl) updateStepper(statusEl.textContent.trim());
+</script>
 </body>
 </html>

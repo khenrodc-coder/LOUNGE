@@ -1,294 +1,1113 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Laundry Lounge Premium</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+<title>Laundry Lounge — Clean Station</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 
 <style>
-/* ==================== IMAGE GLOW & ANIMATION ==================== */
-.img-glow{
-  animation:
-    glowPulse 2s ease-in-out infinite alternate,
-    enterImage 1.2s ease-out forwards,
-    floatImage 4s ease-in-out infinite 1.2s;
-}
-@keyframes enterImage{
-  0%{ transform: translate(-400px, 400px) scale(0.7); opacity:0; }
-  100%{ transform: translate(0,0) scale(1); opacity:1; }
-}
-@keyframes glowPulse{
-  from{
-    filter: brightness(1)
-      drop-shadow(0 0 15px rgba(255,105,180,0.5))
-      drop-shadow(0 0 30px rgba(192,132,252,0.4));
-  }
-  to{
-    filter: brightness(1.3)
-      drop-shadow(0 0 50px rgba(255,105,180,1))
-      drop-shadow(0 0 100px rgba(192,132,252,0.8));
-  }
-}
-@keyframes floatImage{
-  0%,100%{ transform: translate(0,0);}
-  50%{ transform: translate(10px,-10px);}
+
+@keyframes floatChar {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
 }
 
-/* ==================== BODY & BACKGROUND ==================== */
-body{
-  font-family: 'Playfair Display', serif;
-  background:
-    url("{{ url_for('static', filename='img/character.jpg') }}") no-repeat center center / cover,
-    linear-gradient(-45deg,#7a003c,#6a0d83,#2e1f92,#9d174d);
-  background-size: cover;
-  min-height:100vh;
-  position: relative;
+/* ─── RESET ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ─── THEME TOKENS ──────────────────────────────────── */
+:root {
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+[data-theme="light"] {
+  --bg:          #F4EFE6;
+  --bg-alt:      #EDE7DB;
+  --surface:     rgba(255,255,255,0.72);
+  --surface-hov: rgba(255,255,255,0.9);
+  --border:      rgba(0,0,0,0.10);
+  --border-acc:  rgba(196,79,31,0.4);
+  --text:        #1A1309;
+  --text-2:      #5A4E3A;
+  --text-3:      rgba(90,78,58,0.55);
+  --accent:      #C44F1F;
+  --accent-2:    #3E6B45;
+  --accent-glow: rgba(196,79,31,0.22);
+  --mark-bg:     #C44F1F;
+  --mark-text:   #fff;
+  --shadow:      0 20px 60px rgba(60,30,0,0.12), 0 4px 20px rgba(60,30,0,0.06);
+  --shadow-btn:  0 8px 28px rgba(196,79,31,0.35);
+  --ring-big:    rgba(196,79,31,0.06);
+  --deco-op:     0.06;
+  --input-bg:    rgba(255,255,255,0.6);
+  --toggle-bg:   rgba(0,0,0,0.08);
+  --toggle-icon: #1A1309;
+}
+
+[data-theme="dark"] {
+  --bg:          #100E0A;
+  --bg-alt:      #1A1610;
+  --surface:     rgba(30,25,18,0.82);
+  --surface-hov: rgba(40,34,24,0.92);
+  --border:      rgba(255,255,255,0.09);
+  --border-acc:  rgba(232,110,50,0.45);
+  --text:        #F0E8D8;
+  --text-2:      #B0A088;
+  --text-3:      rgba(176,160,136,0.55);
+  --accent:      #E8703A;
+  --accent-2:    #74BF82;
+  --accent-glow: rgba(232,112,58,0.3);
+  --mark-bg:     #E8703A;
+  --mark-text:   #fff;
+  --shadow:      0 20px 60px rgba(0,0,0,0.55), 0 4px 20px rgba(0,0,0,0.3);
+  --shadow-btn:  0 8px 28px rgba(232,112,58,0.4);
+  --ring-big:    rgba(232,112,58,0.07);
+  --deco-op:     0.04;
+  --input-bg:    rgba(255,255,255,0.06);
+  --toggle-bg:   rgba(255,255,255,0.09);
+  --toggle-icon: #F0E8D8;
+}
+
+/* ─── BASE ──────────────────────────────────────────── */
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   overflow-x: hidden;
-  overflow-y: hidden;
+  transition: background 0.4s ease, color 0.4s ease;
 }
 
-/* ==================== ANIMATED LINES ==================== */
-.lines-container{
-  position:fixed;
-  inset:0;
-  z-index:1;
-  overflow:hidden;
-  pointer-events:none;
+/* ─── THEME TOGGLE ──────────────────────────────────── */
+#themeToggle {
+  position: fixed;
+  top: 16px; right: 16px;
+  z-index: 200;
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: var(--toggle-bg);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  color: var(--toggle-icon);
+  -webkit-tap-highlight-color: transparent;
 }
-.line{
-  position:absolute;
-  width:2px;
-  height:150%;
-  background: linear-gradient(to bottom, rgba(255,255,255,0.05), rgba(255,255,255,0.15));
-  transform: rotate(25deg);
-  animation: moveLine 8s linear infinite;
-}
-@keyframes moveLine{
-  0%{ transform: translateX(-100%) rotate(25deg);}
-  100%{ transform: translateX(200%) rotate(25deg);}
-}
-
-/* ==================== GRADIENT & TEXT ==================== */
-.fade-in{ animation: fadeIn 2s ease forwards; opacity:0; }
-@keyframes fadeIn{ to{opacity:1;} }
-
-.gradient-text{
-  background: linear-gradient(90deg,#ffffff,#f9a8d4,#c084fc,#ffffff);
-  background-size: 200% auto;
-  color: transparent;
-  -webkit-background-clip: text;
-  background-clip: text;
-  animation: textShine 5s linear infinite;
-}
-@keyframes textShine{ to{background-position:200% center;} }
-
-.glow{
-  text-shadow:
-    0 0 10px rgba(255,255,255,0.6),
-    0 0 20px rgba(255,182,255,0.6),
-    0 0 40px rgba(255,105,180,0.6);
+#themeToggle:hover {
+  border-color: var(--accent);
+  transform: scale(1.08) rotate(15deg);
 }
 
-.glow-ring{
-  position:absolute;
-  width:100%;
-  height:100%;
-  border-radius:50%;
-  border:40px solid rgba(255,255,255,0.18);
-  box-shadow:
-    0 0 60px rgba(255,105,180,0.6),
-    0 0 120px rgba(255,182,255,0.5);
-}
-@keyframes pulseRing{
-  0%,100%{ box-shadow:0 0 60px rgba(255,105,180,0.6),0 0 120px rgba(255,182,255,0.5); }
-  50%{ box-shadow:0 0 100px rgba(255,105,180,0.9),0 0 200px rgba(255,182,255,0.8); }
-}
-
-/* ==================== BUTTONS ==================== */
-.glass-btn{
-  position:relative;
-  overflow:hidden;
-  background: rgba(255,255,255,0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.3);
-  transition: 0.3s ease;
-  animation: floatBtn 4s ease-in-out infinite;
-}
-.glass-btn:hover{
-  box-shadow: 0 0 20px rgba(255,105,180,0.8), 0 0 40px rgba(255,182,255,0.6);
-}
-@keyframes floatBtn{ 0%,100%{ transform: translateY(0);} 50%{ transform: translateY(-10px);} }
-
-/* ==================== LOGIN MODAL ==================== */
-.login-modal{ position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; visibility:hidden; opacity:0; transition:0.3s ease; z-index:50; }
-.login-modal.active{ visibility:visible; opacity:1; }
-.login-box{ background: rgba(255,255,255,0.1); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.3); padding:40px; border-radius:20px; width:90%; max-width:350px; box-shadow:0 0 40px rgba(255,105,180,0.6); transform:scale(0.8); transition:0.3s ease; }
-.login-modal.active .login-box{ transform:scale(1); }
-
-/* ==================== WARNING MODAL ==================== */
-#errorModal{ position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; visibility:hidden; opacity:0; transition:0.3s ease; z-index:60; }
-#errorModal.active{ visibility:visible; opacity:1; }
-#errorModal .modal-box{ background: rgba(255,255,255,0.1); backdrop-filter: blur(15px); border:1px solid rgba(255,255,255,0.3); padding:30px; border-radius:20px; width:90%; max-width:400px; text-align:center; transform:scale(0.8); transition:0.3s ease; }
-#errorModal.active .modal-box{ transform:scale(1); }
-
-/* ==================== FLOATING BUBBLES ==================== */
-.bubble{ position:absolute; bottom:-100px; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(255,255,255,0.2)); border-radius:9999px; animation: rise linear infinite; opacity:0.6; }
-@keyframes rise{ from{ transform: translateY(0) scale(1); opacity:0.6;} to{ transform: translateY(-110vh) scale(1.3); opacity:0;} }
-</style>
-</head>
-
-<body class="text-white flex flex-col min-h-screen relative">
-
-<!-- Animated lines -->
-<div class="lines-container">
-  <div class="line" style="top:10%; animation-delay:0s;"></div>
-  <div class="line" style="top:30%; animation-delay:2s;"></div>
-  <div class="line" style="top:50%; animation-delay:4s;"></div>
-  <div class="line" style="top:70%; animation-delay:1s;"></div>
-  <div class="line" style="top:90%; animation-delay:3s;"></div>
-</div>
-
-<section class="flex flex-1 items-center justify-center relative text-center fade-in px-4">
-
- <img 
-src="{{ url_for('static', filename='img/c12.png') }}" 
-class="float-img img-glow w-80 md:w-80 lg:w-[800px] mt-6">
-
-<div class="relative flex items-center justify-center w-[90vw] max-w-[600px] h-[90vw] max-h-[600px]">
-<div class="glow-ring absolute"></div>
-<div class="relative z-20 flex flex-col items-center">
-
-<p class="italic text-lg sm:text-xl md:text-2xl text-pink-200 mb-4 tracking-wide">
-From Stains to Sparkle
-</p>
-
-<h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-[85px] leading-[0.9] font-semibold tracking-wide gradient-text glow">
-Laundry <br> Lounge
-</h1>
-
-<button onclick="openLogin()" class="glass-btn mt-8 px-10 py-4 rounded-full text-lg sm:text-xl font-semibold shadow-xl">
-Login
-</button>
-
-</div>
-</div>
-</section>
-
-<!-- Floating bubbles -->
-<div class="bubble w-6 h-6 left-[20%]" style="animation-duration:10s;"></div>
-<div class="bubble w-10 h-10 left-[40%]" style="animation-duration:14s;"></div>
-<div class="bubble w-8 h-8 left-[60%]" style="animation-duration:12s;"></div>
-<div class="bubble w-4 h-4 left-[75%]" style="animation-duration:9s;"></div>
-<div class="bubble w-12 h-12 left-[85%]" style="animation-duration:16s;"></div>
-
-<!-- LOGIN MODAL -->
-<div id="loginModal" class="login-modal">
-<div class="login-box relative text-center p-8">
-<button onclick="closeLogin()" class="absolute top-4 right-4 text-white text-xl hover:text-pink-300">✕</button>
-<h2 class="text-3xl mb-2 font-semibold gradient-text">Welcome Back</h2>
-<p class="text-sm text-pink-200 mb-6">Login to Laundry Lounge</p>
-
-<form action="/login" method="POST" class="space-y-4">
-<div class="relative">
-<span class="absolute left-3 top-3 text-white/70">👤</span>
-<input type="text" name="username" placeholder="Username"
-class="w-full pl-10 pr-4 py-3 rounded-lg bg-white/20 placeholder-white focus:outline-none focus:ring-2 focus:ring-pink-400 transition">
-</div>
-
-<div class="relative">
-<span class="absolute left-3 top-3 text-white/70">🔒</span>
-<input id="password" type="password" name="password" placeholder="Password"
-class="w-full pl-10 pr-10 py-3 rounded-lg bg-white/20 placeholder-white focus:outline-none focus:ring-2 focus:ring-pink-400 transition">
-<button type="button" onclick="togglePassword()" class="absolute right-3 top-3 text-white/70 hover:text-white">👁</button>
-</div>
-
-<button type="submit" class="w-full py-3 rounded-lg font-semibold text-lg bg-gradient-to-r from-pink-500 to-purple-500 hover:scale-105 hover:shadow-lg transition">Sign In</button>
-</form>
-
-<p class="text-xs text-white/70 mt-5">Laundry Lounge Management System</p>
-</div>
-</div>
-
-<!-- WARNING MODAL -->
-<div id="errorModal">
-  <div class="modal-box">
-    <div class="text-red-500 text-5xl mb-3">⚠️</div>
-    <h2 class="text-xl font-bold mb-2">Login Failed</h2>
-    <p id="errorMessage" class="text-gray-200 mb-4"></p>
-    <button onclick="closeErrorModal()" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition">OK</button>
-  </div>
-</div>
-
-<style>
-/* Container hides overflow */
-.animated-text-container {
+/* ─── MAIN WRAPPER ──────────────────────────────────── */
+.scene {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
   position: relative;
-  height: 80px; /* adjust based on text size */
+}
+
+/* ─── BIG DECO TEXT ─────────────────────────────────── */
+.deco-bg {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+.deco-word {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  font-size: clamp(6rem, 18vw, 22rem);
+  line-height: 0.82;
+  color: var(--text);
+  opacity: var(--deco-op);
+  position: absolute;
+  white-space: nowrap;
+  user-select: none;
+  letter-spacing: -0.04em;
+  transition: opacity 0.4s;
+}
+.deco-word.w1 { top: -2%; left: -3%;  transform: rotate(-3deg); }
+.deco-word.w2 { bottom: 2%; right: -4%; transform: rotate(2deg); font-style: italic; }
+
+/* ─── LEFT SIDE — Editorial ─────────────────────────── */
+.side-left {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(1.5rem, 5vw, 4.5rem);
+  border-right: 1px solid var(--border);
+  transition: border-color 0.4s;
+  min-height: 0;
+}
+
+.logo-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.logo-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.64rem;
+  font-weight: 400;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.logo-name {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: clamp(1.3rem, 2.5vw, 2.1rem);
+  line-height: 1;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  transition: color 0.4s;
+}
+.logo-name span {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--accent);
+}
+
+/* Center editorial section */
+.editorial-block {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: clamp(1rem, 3vw, 2rem) 0;
+}
+
+.edition-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px 6px 10px;
+  background: var(--mark-bg);
+  color: var(--mark-text);
+  border-radius: 4px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  width: fit-content;
+  animation: tagSlide 1s var(--ease-expo) 0.2s both;
+}
+.edition-tag::before {
+  content: '';
+  width: 6px; height: 6px;
+  background: rgba(255,255,255,0.8);
+  border-radius: 50%;
+  animation: livePulse 1.8s ease-in-out infinite;
+}
+@keyframes livePulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.4; transform: scale(0.7); }
+}
+@keyframes tagSlide {
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Mascot + headline row */
+.headline-row {
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(8px, 2vw, 16px);
+}
+
+.mascot-img {
+  width: clamp(80px, 14vw, 260px);
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 18px var(--accent-glow));
+  animation: floatChar 5s ease-in-out infinite;
+  align-self: flex-end;
+  display: block;
+}
+
+.big-headline {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2rem, 5.5vw, 6.2rem);
+  font-weight: 900;
+  line-height: 0.85;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  transition: color 0.4s;
+  animation: headlineReveal 1.1s var(--ease-expo) 0.35s both;
+}
+@keyframes headlineReveal {
+  from { opacity: 0; transform: translateY(40px) skewY(2deg); }
+  to   { opacity: 1; transform: translateY(0) skewY(0); }
+}
+.big-headline em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--accent);
+  display: block;
+}
+
+.divider-line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: fadeIn 1s ease 0.7s both;
+}
+.divider-line .rule { flex: 1; height: 1px; background: var(--border); }
+.divider-line .cross {
+  width: 14px; height: 14px;
+  position: relative;
+  opacity: 0.4;
+}
+.divider-line .cross::before,
+.divider-line .cross::after {
+  content: '';
+  position: absolute;
+  background: var(--text);
+  border-radius: 2px;
+}
+.divider-line .cross::before { width: 100%; height: 1px; top: 50%; left: 0; transform: translateY(-50%); }
+.divider-line .cross::after  { width: 1px; height: 100%; left: 50%; top: 0; transform: translateX(-50%); }
+
+.feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: fadeIn 1s ease 0.9s both;
+}
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.feat-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  font-weight: 500;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  padding-top: 3px;
+  min-width: 22px;
+}
+.feat-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.feat-title {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: 0.01em;
+  transition: color 0.4s;
+}
+.feat-sub {
+  font-size: 0.72rem;
+  color: var(--text-3);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+}
+
+/* Bottom left */
+.bottom-left {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  animation: fadeIn 1s ease 1s both;
+}
+.est-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+/* Wash cycle animation */
+.wash-anim {
+  position: relative;
+  width: 48px; height: 48px;
+  flex-shrink: 0;
+}
+.wash-ring {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+}
+.wash-arc {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid transparent;
+  border-top-color: var(--accent);
+  border-right-color: var(--accent);
+  animation: washSpin 2.2s linear infinite;
+}
+.wash-arc-2 {
+  position: absolute; inset: 9px;
+  border-radius: 50%;
+  border: 1.5px solid transparent;
+  border-bottom-color: var(--accent-2);
+  animation: washSpin 3.5s linear infinite reverse;
+  opacity: 0.6;
+}
+.wash-dot {
+  position: absolute;
+  width: 6px; height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+}
+@keyframes washSpin { to { transform: rotate(360deg); } }
+
+/* ─── RIGHT SIDE — Login Form ───────────────────────── */
+.side-right {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1.5rem, 5vw, 4rem);
   overflow: hidden;
 }
 
-/* Each text span */
-.text-slide {
-  display: block;
+.side-right::before {
+  content: '';
   position: absolute;
-  width: 100%;
+  width: 60%; height: 70%;
+  top: 15%; left: 20%;
+  background: radial-gradient(ellipse, var(--accent-glow) 0%, transparent 70%);
+  pointer-events: none;
+  transition: background 0.4s;
+}
+
+/* Floating wash bubbles */
+.soap-bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%,
+    rgba(255,255,255,0.5),
+    rgba(255,255,255,0.04));
+  border: 1px solid rgba(255,255,255,0.18);
+  pointer-events: none;
+  animation: floatBubble linear infinite;
   opacity: 0;
-  top: 0;
-  left: 0;
-  color: white;
+}
+@keyframes floatBubble {
+  0%   { transform: translateY(0) scale(1);   opacity: 0; }
+  10%  { opacity: 0.5; }
+  90%  { opacity: 0.2; }
+  100% { transform: translateY(-110vh) scale(1.4); opacity: 0; }
+}
+
+/* The login card */
+.login-card {
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: clamp(1.5rem, 5vw, 3rem);
+  box-shadow: var(--shadow);
+  animation: cardEnter 1.1s var(--ease-expo) 0.5s both;
+  transition: background 0.4s, border-color 0.4s, box-shadow 0.4s;
+}
+@keyframes cardEnter {
+  from { opacity: 0; transform: translateY(30px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.card-corner {
+  position: absolute;
+  top: -1px; right: -1px;
+  width: 60px; height: 60px;
+  border-top: 2px solid var(--accent);
+  border-right: 2px solid var(--accent);
+  border-radius: 0 20px 0 0;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+.login-card:hover .card-corner { opacity: 1; }
+
+.card-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.card-title {
   font-family: 'Playfair Display', serif;
-  text-shadow: 
-    0 0 10px rgba(255,255,255,0.6),
-    0 0 20px rgba(255,182,255,0.6),
-    0 0 40px rgba(255,105,180,0.6);
-  animation: slideText 9s infinite;
+  font-weight: 700;
+  font-size: clamp(1.4rem, 3vw, 2.1rem);
+  line-height: 1.05;
+  color: var(--text);
+  margin-bottom: 4px;
+  transition: color 0.4s;
+}
+.card-title em {
+  font-style: italic;
+  font-weight: 400;
+}
+.card-sub {
+  font-size: 0.76rem;
+  color: var(--text-3);
+  font-weight: 300;
+  margin-bottom: 24px;
+  letter-spacing: 0.02em;
 }
 
-/* Animate text slides one after another */
-.text-slide:nth-child(1) { animation-delay: 0s; }
-.text-slide:nth-child(2) { animation-delay: 3s; }
-.text-slide:nth-child(3) { animation-delay: 6s; }
-
-@keyframes slideText {
-  0% { opacity: 0; transform: translateY(100%); }
-  10% { opacity: 1; transform: translateY(0); }
-  30% { opacity: 1; transform: translateY(0); }
-  40% { opacity: 0; transform: translateY(-100%); }
-  100% { opacity: 0; transform: translateY(-100%); }
+/* ─── FORM FIELDS ───────────────────────────────────── */
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 20px;
 }
 
-/* Optional neon gradient like your gradient-text */
-.gradient-text {
-  background: linear-gradient(90deg,#ffffff,#f9a8d4,#c084fc,#ffffff);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: textShine 5s linear infinite;
-}
-@keyframes textShine { to { background-position:200% center; } }
+.field-wrap { position: relative; }
 
+.field-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  display: block;
+  margin-bottom: 6px;
+  transition: color 0.2s;
+}
+.field-wrap:focus-within .field-label { color: var(--accent); }
+
+.field-input {
+  width: 100%;
+  padding: 12px 44px 12px 16px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-size: clamp(0.85rem, 2.5vw, 0.9rem);
+  font-weight: 400;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  letter-spacing: 0.01em;
+  /* Prevent iOS zoom on focus */
+  -webkit-text-size-adjust: 100%;
+}
+.field-input::placeholder { color: var(--text-3); font-weight: 300; }
+.field-input:focus {
+  border-color: var(--accent);
+  background: var(--surface-hov);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.field-icon {
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+  font-size: 0.9rem;
+  opacity: 0.35;
+  pointer-events: none;
+}
+.field-icon.clickable {
+  pointer-events: all;
+  cursor: pointer;
+  opacity: 0.35;
+  background: none;
+  border: none;
+  transition: opacity 0.15s;
+  padding: 0;
+  color: var(--text);
+  /* bigger tap target on touch */
+  min-width: 36px;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  bottom: 6px;
+  right: 8px;
+  -webkit-tap-highlight-color: transparent;
+}
+.field-icon.clickable:hover { opacity: 0.75; }
+
+/* ─── SUBMIT BUTTON ─────────────────────────────────── */
+.submit-btn {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  padding: 14px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.15s var(--ease-back), box-shadow 0.15s, opacity 0.15s, background 0.2s;
+  box-shadow: var(--shadow-btn);
+  margin-bottom: 16px;
+  -webkit-tap-highlight-color: transparent;
+  /* Ensure good tap target */
+  min-height: 48px;
+}
+.submit-btn::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+  transform: translateX(-100%);
+  transition: transform 0.5s ease;
+}
+.submit-btn:hover::after { transform: translateX(100%); }
+.submit-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 36px var(--accent-glow); }
+.submit-btn:active { transform: scale(0.98); }
+.submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.submit-btn.loading .btn-label { display: none; }
+.submit-btn.loading .btn-spinner { display: flex; }
+.btn-label { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.btn-arrow { font-size: 0.9rem; transition: transform 0.2s; }
+.submit-btn:hover .btn-arrow { transform: translateX(4px); }
+.btn-spinner { display: none; align-items: center; justify-content: center; }
+.spin-ring {
+  width: 18px; height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── CARD FOOTER ───────────────────────────────────── */
+.card-footer-note {
+  text-align: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.15em;
+  color: var(--text-3);
+  text-transform: uppercase;
+}
+
+/* ─── TICKER STRIP ──────────────────────────────────── */
+.ticker-wrap {
+  width: 100%;
+  background: var(--accent);
+  color: #fff;
+  overflow: hidden;
+  padding: 8px 0;
+  position: relative;
+  z-index: 10;
+}
+.ticker-inner {
+  display: flex;
+  white-space: nowrap;
+  animation: ticker 22s linear infinite;
+}
+.ticker-item {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 0 40px;
+  opacity: 0.9;
+}
+.ticker-dot {
+  display: inline-block;
+  width: 4px; height: 4px;
+  background: rgba(255,255,255,0.6);
+  border-radius: 50%;
+  vertical-align: middle;
+  margin: 0 20px;
+}
+@keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* ─── ERROR MODAL ───────────────────────────────────── */
+.err-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 999;
+  padding: 1rem;
+  visibility: hidden; opacity: 0;
+  transition: opacity 0.3s, visibility 0.3s;
+}
+.err-overlay.active { visibility: visible; opacity: 1; }
+.err-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 36px 32px;
+  width: 90%; max-width: 350px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  transform: scale(0.9);
+  transition: transform 0.3s var(--ease-back), background 0.3s;
+}
+.err-overlay.active .err-box { transform: scale(1); }
+.err-icon {
+  width: 52px; height: 52px;
+  background: rgba(220, 60, 60, 0.1);
+  border: 1px solid rgba(220,60,60,0.25);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem;
+  margin: 0 auto 14px;
+}
+.err-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.err-msg {
+  font-size: 0.82rem;
+  color: var(--text-2);
+  font-weight: 300;
+  margin-bottom: 22px;
+  line-height: 1.6;
+}
+.err-close {
+  padding: 10px 28px;
+  background: #DC3C3C;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s;
+  min-height: 44px;
+}
+.err-close:hover { opacity: 0.85; transform: translateY(-1px); }
+
+/* ─── FADE IN ───────────────────────────────────────── */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.fade-in { animation: fadeIn 1s ease both; }
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+═══════════════════════════════════════════════════════ */
+
+/* ── Large tablet / small desktop: tighten up columns ── */
+@media (max-width: 1100px) {
+  .feature-list { gap: 10px; }
+  .feat-sub { display: none; }
+  .big-headline { font-size: clamp(2rem, 5vw, 4.5rem); }
+  .mascot-img { width: clamp(80px, 12vw, 180px); }
+}
+
+/* ── Tablet landscape: switch to stacked layout ── */
+@media (max-width: 900px) {
+  .scene {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .side-left {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: 2rem 1.75rem 1.75rem;
+    /* Tighten the left panel height on tablet */
+    min-height: auto;
+  }
+
+  .editorial-block { gap: 14px; padding: 0.75rem 0; }
+
+  .big-headline { font-size: clamp(2.4rem, 9vw, 4.5rem); }
+
+  .mascot-img { width: clamp(90px, 18vw, 200px); }
+
+  .feature-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 20px;
+  }
+  .feat-sub { display: block; }
+
+  .side-right {
+    padding: 2rem 1.75rem 2.5rem;
+    /* Full-width card on tablet */
+    align-items: flex-start;
+  }
+
+  .login-card {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .deco-word { font-size: clamp(5rem, 18vw, 10rem); }
+}
+
+/* ── Mobile portrait: 600px and below ── */
+@media (max-width: 600px) {
+  #themeToggle {
+    top: 12px; right: 12px;
+    width: 38px; height: 38px;
+    font-size: 1rem;
+  }
+
+  .side-left {
+    padding: 1.25rem 1rem 1.25rem;
+    gap: 0;
+  }
+
+  .logo-eyebrow { font-size: 0.56rem; letter-spacing: 0.2em; }
+  .logo-name { font-size: 1.3rem; }
+
+  .editorial-block { gap: 12px; padding: 0.5rem 0; }
+
+  .edition-tag { font-size: 0.56rem; padding: 5px 10px 5px 8px; }
+
+  /* On mobile: mascot left, headline right side-by-side */
+  .headline-row {
+    gap: 10px;
+    align-items: flex-end;
+  }
+
+  .mascot-img { width: clamp(70px, 26vw, 130px); }
+
+  .big-headline { font-size: clamp(1.8rem, 10vw, 3rem); }
+
+  .feature-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 14px;
+  }
+  .feat-title { font-size: 0.74rem; }
+  .feat-sub { font-size: 0.64rem; }
+  .feat-num { font-size: 0.52rem; }
+
+  .bottom-left { margin-top: 4px; }
+  .est-badge { font-size: 0.52rem; letter-spacing: 0.12em; }
+  .wash-anim { width: 38px; height: 38px; }
+
+  .side-right { padding: 1.5rem 1rem 2rem; }
+
+  .login-card {
+    border-radius: 16px;
+    padding: 1.5rem 1.25rem;
+  }
+
+  .card-title { font-size: 1.5rem; }
+  .card-sub { margin-bottom: 18px; }
+
+  .field-input {
+    font-size: 16px; /* Prevents iOS zoom */
+    padding: 11px 42px 11px 14px;
+  }
+
+  .submit-btn { padding: 13px; font-size: 0.76rem; }
+
+  .deco-word { display: none; } /* Hide on small screens to reduce clutter */
+}
+
+/* ── Very small phones: 380px and below ── */
+@media (max-width: 380px) {
+  .side-left { padding: 1rem 0.9rem; }
+  .side-right { padding: 1.25rem 0.9rem 1.75rem; }
+
+  .feature-list { grid-template-columns: 1fr; gap: 6px; }
+  .feat-sub { display: none; }
+
+  .big-headline { font-size: clamp(1.6rem, 11vw, 2.5rem); }
+
+  .mascot-img { width: clamp(60px, 22vw, 100px); }
+
+  .login-card { padding: 1.25rem 1rem; }
+
+  .card-title { font-size: 1.35rem; }
+}
+
+/* ── Landscape phones ── */
+@media (max-height: 500px) and (orientation: landscape) {
+  .scene { min-height: 0; }
+
+  .side-left {
+    padding: 1rem 1.5rem;
+  }
+
+  .editorial-block { gap: 8px; padding: 0.5rem 0; }
+
+  .feature-list { display: none; }
+
+  .mascot-img { width: clamp(60px, 10vw, 100px); }
+
+  .big-headline { font-size: clamp(1.5rem, 5vh, 3rem); }
+
+  .bottom-left { margin-top: 4px; }
+
+  .side-right { padding: 1rem 1.5rem; }
+
+  .login-card { padding: 1.25rem 1.5rem; }
+
+  .card-sub { margin-bottom: 14px; }
+
+  .field-group { gap: 10px; margin-bottom: 14px; }
+}
+
+/* ── Touch devices: ensure tap targets are 44px+ ── */
+@media (hover: none) {
+  .submit-btn { min-height: 50px; }
+  .field-input { min-height: 48px; }
+  .err-close { min-height: 48px; }
+}
 </style>
+</head>
 
-<footer class="w-full text-center py-5 bg-gradient-to-r from-purple-900 to-pink-700 tracking-wide">
-Maharlika Highway Cojuangco, Santa Rosa Nueva Ecija
-</footer>
+<body>
+
+<!-- Theme toggle -->
+<button id="themeToggle" onclick="toggleTheme()" aria-label="Toggle theme" title="Switch theme">☀</button>
+
+<!-- Big decorative words -->
+<div class="deco-bg" aria-hidden="true">
+  <div class="deco-word w1">CLEAN</div>
+  <div class="deco-word w2">Fresh</div>
+</div>
+
+<div class="scene">
+
+  <!-- ══════ LEFT — Editorial ══════ -->
+  <div class="side-left">
+
+    <div class="logo-block fade-in">
+      <span class="logo-eyebrow">Est. 2024 · Nueva Ecija</span>
+      <div class="logo-name">Laundry <span>Lounge</span></div>
+    </div>
+
+    <div class="editorial-block">
+      <div class="edition-tag">Now Serving &nbsp;·&nbsp; Open Daily</div>
+
+      <div class="headline-row">
+        <img
+          src="{{ url_for('static', filename='img/121.png') }}"
+          alt="Laundry Lounge mascot"
+          class="mascot-img"
+        >
+        <h1 class="big-headline">
+          Fresher.<br>
+          Faster.<br>
+          <em>Better.</em>
+        </h1>
+      </div>
+
+      <div class="divider-line">
+        <div class="rule"></div>
+        <div class="cross"></div>
+        <div class="rule"></div>
+      </div>
+
+      <ul class="feature-list" role="list">
+        <li class="feature-item">
+          <span class="feat-num">01</span>
+          <div class="feat-text">
+            <span class="feat-title">Real-time Order Tracking</span>
+            <span class="feat-sub">Know exactly where your laundry is at all times</span>
+          </div>
+        </li>
+        <li class="feature-item">
+          <span class="feat-num">02</span>
+          <div class="feat-text">
+            <span class="feat-title">Fast Pickup & Delivery</span>
+            <span class="feat-sub">Scheduled or on-demand — your call</span>
+          </div>
+        </li>
+        <li class="feature-item">
+          <span class="feat-num">03</span>
+          <div class="feat-text">
+            <span class="feat-title">Sales & Expense Reports</span>
+            <span class="feat-sub">Insightful analytics to run your business smarter</span>
+          </div>
+        </li>
+        <li class="feature-item">
+          <span class="feat-num">04</span>
+          <div class="feat-text">
+            <span class="feat-title">Customer Management</span>
+            <span class="feat-sub">Profiles, history, preferences — all in one place</span>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="bottom-left">
+      <span class="est-badge">Laundry Lounge Management System</span>
+      <div class="wash-anim" title="Always in motion">
+        <div class="wash-ring"></div>
+        <div class="wash-arc"></div>
+        <div class="wash-arc-2"></div>
+        <div class="wash-dot"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════ RIGHT — Login Form ══════ -->
+  <div class="side-right">
+
+    <!-- Floating soap bubbles -->
+    <div class="soap-bubble" style="width:18px;height:18px;left:15%;bottom:-30px;animation-duration:12s;animation-delay:0s;"></div>
+    <div class="soap-bubble" style="width:28px;height:28px;left:70%;bottom:-30px;animation-duration:17s;animation-delay:4s;"></div>
+    <div class="soap-bubble" style="width:12px;height:12px;left:40%;bottom:-30px;animation-duration:10s;animation-delay:2s;"></div>
+    <div class="soap-bubble" style="width:22px;height:22px;left:85%;bottom:-30px;animation-duration:14s;animation-delay:6s;"></div>
+    <div class="soap-bubble" style="width:9px;height:9px;left:55%;bottom:-30px;animation-duration:8s;animation-delay:8s;"></div>
+
+    <div class="login-card">
+      <div class="card-corner"></div>
+
+      <p class="card-eyebrow">Management Portal</p>
+      <h2 class="card-title">Welcome <em>back</em></h2>
+      <p class="card-sub">Sign in to your Laundry Lounge account</p>
+
+      <form action="/login" method="POST" id="loginForm" onsubmit="handleSubmit(event)">
+        <div class="field-group">
+
+          <div class="field-wrap">
+            <label for="username" class="field-label">Username</label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              class="field-input"
+              placeholder="Enter your username"
+              required
+              autocomplete="username"
+            >
+            <span class="field-icon">👤</span>
+          </div>
+
+          <div class="field-wrap">
+            <label for="password" class="field-label">Password</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              class="field-input"
+              placeholder="Enter your password"
+              required
+              autocomplete="current-password"
+              style="padding-right: 44px;"
+            >
+            <button
+              type="button"
+              class="field-icon clickable"
+              onclick="togglePwd()"
+              aria-label="Show/hide password"
+            >👁</button>
+          </div>
+
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">
+          <span class="btn-label">
+            Sign In
+            <span class="btn-arrow">→</span>
+          </span>
+          <span class="btn-spinner">
+            <span class="spin-ring"></span>
+          </span>
+        </button>
+
+      </form>
+
+      <p class="card-footer-note">Maharlika Hwy · Cojuangco · Sta. Rosa · NE</p>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Ticker strip -->
+<div class="ticker-wrap" aria-hidden="true">
+  <div class="ticker-inner">
+    <span class="ticker-item">Fast Pickup</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Order Tracking</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Premium Care</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Same-Day Service</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Fresh Every Time</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Laundry Lounge</span><span class="ticker-dot"></span>
+    <!-- duplicate for seamless loop -->
+    <span class="ticker-item">Fast Pickup</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Order Tracking</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Premium Care</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Same-Day Service</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Fresh Every Time</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Laundry Lounge</span><span class="ticker-dot"></span>
+  </div>
+</div>
+
+<!-- Error Modal -->
+<div class="err-overlay" id="errorModal" role="alertdialog">
+  <div class="err-box">
+    <div class="err-icon">⚠️</div>
+    <h3 class="err-title">Login Failed</h3>
+    <p class="err-msg" id="errorMessage"></p>
+    <button class="err-close" onclick="closeError()">Dismiss</button>
+  </div>
+</div>
 
 <script>
-function openLogin(){ document.getElementById("loginModal").classList.add("active"); }
-function closeLogin(){ document.getElementById("loginModal").classList.remove("active"); }
-window.onclick = function(event){ let modal = document.getElementById("loginModal"); if(event.target === modal){ modal.classList.remove("active"); } }
-document.addEventListener("keydown", function(e){ if(e.key === "Escape"){ closeLogin(); closeErrorModal(); } });
-function togglePassword(){ let pass = document.getElementById("password"); pass.type = pass.type === "password" ? "text" : "password"; }
+/* ── Theme ─────────────────────── */
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.dataset.theme === 'dark';
+  html.dataset.theme = isDark ? 'light' : 'dark';
+  document.getElementById('themeToggle').textContent = isDark ? '☀' : '☽';
+  localStorage.setItem('ll-theme', html.dataset.theme);
+}
+(function() {
+  const saved = localStorage.getItem('ll-theme');
+  if (saved) {
+    document.documentElement.dataset.theme = saved;
+    const btn = document.getElementById('themeToggle');
+    if (btn) btn.textContent = saved === 'dark' ? '☽' : '☀';
+  }
+})();
 
-function closeErrorModal(){
-  document.getElementById("errorModal").classList.remove("active");
+/* ── Form ──────────────────────── */
+function handleSubmit(e) {
+  const btn = document.getElementById('submitBtn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+}
+function togglePwd() {
+  const p = document.getElementById('password');
+  p.type = p.type === 'password' ? 'text' : 'password';
 }
 
-// Show error modal if Flask flashed an "error" message
+/* ── Error modal ───────────────── */
+function closeError() {
+  document.getElementById('errorModal').classList.remove('active');
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeError();
+});
+document.getElementById('errorModal').addEventListener('click', function(e) {
+  if (e.target === this) closeError();
+});
+
+/* ── Flask flash messages ──────── */
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
     {% for category, message in messages %}
@@ -296,7 +1115,6 @@ function closeErrorModal(){
         document.addEventListener("DOMContentLoaded", function() {
           document.getElementById("errorModal").classList.add("active");
           document.getElementById("errorMessage").innerText = "{{ message }}";
-          openLogin();
         });
       {% endif %}
     {% endfor %}

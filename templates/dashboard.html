@@ -1,272 +1,775 @@
 <!DOCTYPE html>
-<html lang="en" class="transition duration-300">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LOUNGE Premium Dashboard</title>
+<title>LOUNGE — Dashboard</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
-<script>tailwind.config = { darkMode: 'class' }</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
-body{ font-family:'DM Sans',sans-serif; overflow-x:hidden; }
-h1,h2,h3{ font-family:'Poppins',sans-serif; }
-.glass{ background: rgba(255,255,255,0.25); backdrop-filter: blur(18px); border: 1px solid rgba(255,255,255,0.3); transition: box-shadow 0.3s, transform 0.3s;}
-.glass:hover{ box-shadow: 0 0 20px rgba(255,255,255,0.5); transform: translateY(-3px);}
-.dark .glass{ background: rgba(30,41,59,0.35); border: 1px solid rgba(255,255,255,0.08);}
-.bubbles{position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none;}
-.bubble{position: absolute; bottom: -150px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(255,255,255,0.4) 40%, rgba(255,255,255,0.2) 60%, transparent 70%); animation: floatUp linear infinite; opacity: 0.6; backdrop-filter: blur(4px);}
-@keyframes floatUp{0%{transform: translateY(0) scale(1); opacity:0;} 10%{opacity:0.6;} 90%{opacity:0.6;} 100%{transform: translateY(-120vh) scale(1.2); opacity:0;}}
-.decorative-line{position:absolute;width:2px;height:150px;background:linear-gradient(to bottom, rgba(255,255,255,0.5), transparent); transform:rotate(25deg); opacity:0.3; z-index:0; pointer-events:none;}
-.decorative-line.reverse{transform:rotate(-25deg);}
-.decorative-circle{position:absolute;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.1); box-shadow:0 0 20px rgba(255,255,255,0.2); z-index:0; pointer-events:none;}
+/* ─── RESET ─────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ─── THEME TOKENS (exact match from login page) ─── */
+:root {
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+[data-theme="light"] {
+  --bg:          #F4EFE6;
+  --bg-alt:      #EDE7DB;
+  --surface:     rgba(255,255,255,0.72);
+  --surface-hov: rgba(255,255,255,0.9);
+  --border:      rgba(0,0,0,0.10);
+  --border-acc:  rgba(196,79,31,0.4);
+  --text:        #1A1309;
+  --text-2:      #5A4E3A;
+  --text-3:      rgba(90,78,58,0.55);
+  --accent:      #C44F1F;
+  --accent-2:    #3E6B45;
+  --accent-glow: rgba(196,79,31,0.22);
+  --mark-bg:     #C44F1F;
+  --mark-text:   #fff;
+  --shadow:      0 20px 60px rgba(60,30,0,0.12), 0 4px 20px rgba(60,30,0,0.06);
+  --shadow-sm:   0 4px 16px rgba(60,30,0,0.08);
+  --deco-op:     0.05;
+  --toggle-bg:   rgba(0,0,0,0.06);
+  --sidebar-bg:  rgba(255,255,255,0.82);
+  --overlay-bg:  rgba(30,20,10,0.4);
+  --stat-up:     #3E6B45;
+  --stat-dn:     #C44F1F;
+  --bubble-a:    rgba(196,79,31,0.15);
+  --bubble-b:    rgba(196,79,31,0.04);
+  --grid-color:  rgba(0,0,0,0.07);
+  --tick-color:  rgba(90,78,58,0.8);
+  --chart-fill:  rgba(196,79,31,0.10);
+  --chart-bar:   rgba(196,79,31,0.50);
+  --chart-barh:  rgba(196,79,31,0.80);
+}
+
+[data-theme="dark"] {
+  --bg:          #100E0A;
+  --bg-alt:      #1A1610;
+  --surface:     rgba(30,25,18,0.82);
+  --surface-hov: rgba(40,34,24,0.92);
+  --border:      rgba(255,255,255,0.09);
+  --border-acc:  rgba(232,110,50,0.45);
+  --text:        #F0E8D8;
+  --text-2:      #B0A088;
+  --text-3:      rgba(176,160,136,0.55);
+  --accent:      #E8703A;
+  --accent-2:    #74BF82;
+  --accent-glow: rgba(232,112,58,0.3);
+  --mark-bg:     #E8703A;
+  --mark-text:   #fff;
+  --shadow:      0 20px 60px rgba(0,0,0,0.55), 0 4px 20px rgba(0,0,0,0.3);
+  --shadow-sm:   0 4px 16px rgba(0,0,0,0.35);
+  --deco-op:     0.04;
+  --toggle-bg:   rgba(255,255,255,0.09);
+  --sidebar-bg:  rgba(16,12,8,0.94);
+  --overlay-bg:  rgba(0,0,0,0.58);
+  --stat-up:     #74BF82;
+  --stat-dn:     #E8703A;
+  --bubble-a:    rgba(232,112,58,0.12);
+  --bubble-b:    rgba(232,112,58,0.03);
+  --grid-color:  rgba(255,255,255,0.07);
+  --tick-color:  rgba(176,160,136,0.8);
+  --chart-fill:  rgba(232,112,58,0.12);
+  --chart-bar:   rgba(232,112,58,0.50);
+  --chart-barh:  rgba(232,112,58,0.85);
+}
+
+/* ─── BASE ──────────────────────────────── */
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background 0.4s ease, color 0.4s ease;
+  padding-bottom: 34px; /* room for ticker */
+}
+
+/* ─── GLASS CARD ────────────────────────── */
+.glass {
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.3s, transform 0.3s, background 0.4s, border-color 0.4s;
+}
+.glass:hover {
+  box-shadow: var(--shadow);
+  transform: translateY(-3px);
+  border-color: var(--border-acc);
+  background: var(--surface-hov);
+}
+@media (hover: none) { .glass { transform: none !important; } }
+
+/* Accent corner (from login card) */
+.corner-acc {
+  position: absolute; top: -1px; right: -1px;
+  width: 44px; height: 44px;
+  border-top: 2px solid var(--accent);
+  border-right: 2px solid var(--accent);
+  border-radius: 0 16px 0 0;
+  opacity: 0.45;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.glass:hover .corner-acc { opacity: 1; }
+
+/* ─── DECO BG WORDS ─────────────────────── */
+.deco-bg {
+  pointer-events: none;
+  position: fixed; inset: 0;
+  overflow: hidden; z-index: 0;
+}
+.deco-word {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  font-size: clamp(6rem, 18vw, 20rem);
+  line-height: 0.82;
+  color: var(--text);
+  opacity: var(--deco-op);
+  position: absolute;
+  white-space: nowrap;
+  user-select: none;
+  letter-spacing: -0.04em;
+  transition: opacity 0.4s;
+}
+.deco-word.w1 { top: -4%; left: -3%; transform: rotate(-3deg); }
+.deco-word.w2 { bottom: 0; right: -4%; transform: rotate(2deg); font-style: italic; }
+@media (max-width: 600px) { .deco-word { display: none; } }
+
+/* ─── BUBBLES ───────────────────────────── */
+.bubbles { position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+.bubble {
+  position: absolute; bottom: -150px; border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, var(--bubble-a), var(--bubble-b) 60%, transparent 80%);
+  border: 1px solid var(--border-acc);
+  animation: floatUp linear infinite; opacity: 0;
+  transition: background 0.4s;
+}
+@keyframes floatUp {
+  0%   { transform: translateY(0) scale(1);   opacity: 0; }
+  10%  { opacity: 0.6; }
+  90%  { opacity: 0.25; }
+  100% { transform: translateY(-115vh) scale(1.3); opacity: 0; }
+}
+
+/* ─── SIDEBAR ───────────────────────────── */
+#sidebar {
+  position: fixed; top: 0; left: 0; height: 100%;
+  width: 256px; z-index: 40;
+  transform: translateX(-100%);
+  transition: transform 0.3s var(--ease-expo);
+  display: flex; flex-direction: column; justify-content: space-between;
+  overflow-y: auto; overscroll-behavior: contain;
+  background: var(--sidebar-bg);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border-right: 1px solid var(--border);
+  padding: 1.5rem 1.25rem;
+  transition: transform 0.3s var(--ease-expo), background 0.4s, border-color 0.4s;
+}
+#sidebar.open { transform: translateX(0); }
+
+/* Sidebar logo */
+.sb-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem; letter-spacing: 0.3em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 4px;
+}
+.sb-name {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700; font-size: 1.45rem;
+  color: var(--text); line-height: 1; letter-spacing: -0.01em;
+  transition: color 0.4s;
+}
+.sb-name span { font-style: italic; font-weight: 400; color: var(--accent); }
+
+/* Nav */
+.nav-link {
+  display: flex; align-items: center; gap: 11px;
+  padding: 10px 13px; border-radius: 10px;
+  font-size: 0.86rem; font-weight: 500;
+  color: var(--text-2); border: 1px solid transparent;
+  text-decoration: none; min-height: 44px;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-link:hover, .nav-link.active {
+  background: var(--surface-hov); color: var(--text); border-color: var(--border-acc);
+}
+.nav-link.active { color: var(--accent); }
+
+/* Sidebar user */
+.sb-user { padding-top: 1rem; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 3px; }
+.sb-uname { font-size: 0.85rem; font-weight: 500; color: var(--text); }
+.sb-uemail { font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em; color: var(--text-3); }
+.sb-logout {
+  margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 10px 16px; border-radius: 10px;
+  background: rgba(220,60,60,0.10); color: #DC3C3C;
+  border: 1px solid rgba(220,60,60,0.25);
+  font-family: 'DM Mono', monospace; font-size: 0.66rem;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  text-decoration: none; min-height: 44px;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.sb-logout:hover { background: rgba(220,60,60,0.20); border-color: rgba(220,60,60,0.5); transform: translateY(-1px); }
+
+/* Close btn */
+#closeSidebar {
+  width: 34px; height: 34px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--toggle-bg);
+  color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem; transition: border-color 0.2s, background 0.2s;
+  flex-shrink: 0; -webkit-tap-highlight-color: transparent;
+}
+#closeSidebar:hover { border-color: var(--accent); }
+
+/* ─── OVERLAY ───────────────────────────── */
+#overlay {
+  position: fixed; inset: 0; background: var(--overlay-bg);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  z-index: 30; display: none;
+  transition: opacity 0.3s, background 0.4s;
+}
+#overlay.visible { display: block; }
+
+/* ─── MAIN ──────────────────────────────── */
+#main {
+  position: relative; z-index: 10;
+  transition: margin-left 0.3s var(--ease-expo);
+  padding: clamp(1rem, 4vw, 2.5rem);
+  min-height: 100vh;
+}
+/* margin-left is controlled by JS only — no CSS override */
+@media (min-width: 1024px) {
+  #main.sidebar-open { margin-left: 256px; }
+}
+
+/* ─── TOPBAR ────────────────────────────── */
+.topbar {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: clamp(1rem, 3.5vw, 1.75rem); gap: 12px;
+}
+#openSidebar {
+  width: 44px; height: 44px; border-radius: 10px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; flex-shrink: 0;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+#openSidebar:hover { border-color: var(--accent); transform: scale(1.05); }
+
+#themeToggle {
+  display: flex; align-items: center; gap: 7px;
+  padding: 10px 15px; border-radius: 30px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); cursor: pointer; white-space: nowrap;
+  font-family: 'DM Mono', monospace; font-size: 0.66rem;
+  letter-spacing: 0.15em; text-transform: uppercase; min-height: 44px;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+#themeToggle:hover { border-color: var(--accent); transform: scale(1.03); }
+
+/* ─── PAGE HEADER ───────────────────────── */
+.page-header { margin-bottom: clamp(1rem, 3vw, 1.75rem); }
+.live-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 5px 12px 5px 8px; background: var(--mark-bg); color: var(--mark-text);
+  border-radius: 4px; font-family: 'DM Mono', monospace;
+  font-size: 0.6rem; font-weight: 500; letter-spacing: 0.2em;
+  text-transform: uppercase; margin-bottom: 10px;
+  animation: tagSlide 1s var(--ease-expo) 0.2s both;
+}
+.live-tag::before {
+  content: ''; width: 6px; height: 6px;
+  background: rgba(255,255,255,0.8); border-radius: 50%;
+  animation: livePulse 1.8s ease-in-out infinite;
+}
+@keyframes livePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+@keyframes tagSlide { from{opacity:0;transform:translateX(-16px)} to{opacity:1;transform:translateX(0)} }
+
+.page-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900; line-height: 0.9;
+  font-size: clamp(1.8rem, 5vw, 3.2rem);
+  letter-spacing: -0.03em; color: var(--text);
+  transition: color 0.4s;
+}
+.page-title em { font-style: italic; font-weight: 400; color: var(--accent); display: block; }
+.page-sub {
+  font-size: 0.78rem; color: var(--text-3);
+  font-weight: 300; margin-top: 6px; letter-spacing: 0.02em;
+}
+
+/* ─── DIVIDER ───────────────────────────── */
+.divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: clamp(1rem, 3vw, 1.75rem) 0;
+}
+.divider .rule { flex: 1; height: 1px; background: var(--border); }
+.divider .cross { width: 12px; height: 12px; position: relative; opacity: 0.4; }
+.divider .cross::before,
+.divider .cross::after { content:''; position:absolute; background:var(--text); border-radius:2px; }
+.divider .cross::before { width:100%; height:1px; top:50%; transform:translateY(-50%); }
+.divider .cross::after  { width:1px; height:100%; left:50%; transform:translateX(-50%); }
+
+/* ─── STAT CARDS ────────────────────────── */
+.stats-grid {
+  display: grid;
+  gap: clamp(0.7rem, 2vw, 1.2rem);
+  grid-template-columns: repeat(2, 1fr);
+}
+@media (min-width: 1024px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 360px)  { .stats-grid { grid-template-columns: 1fr; } }
+
+.stat-card {
+  position: relative; overflow: hidden;
+  border-radius: 16px;
+  padding: clamp(1rem, 3vw, 1.4rem);
+  animation: fadeUp 0.6s var(--ease-expo) both;
+}
+.stat-card:nth-child(1) { animation-delay: 0.10s; }
+.stat-card:nth-child(2) { animation-delay: 0.18s; }
+.stat-card:nth-child(3) { animation-delay: 0.26s; }
+.stat-card:nth-child(4) { animation-delay: 0.34s; }
+
+.stat-ey {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--text-3); margin-bottom: 8px;
+}
+.stat-val {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700; font-size: clamp(1.35rem, 3.5vw, 2rem);
+  color: var(--text); line-height: 1; transition: color 0.4s;
+}
+.stat-chg {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem; letter-spacing: 0.1em;
+  margin-top: 6px; font-weight: 500;
+}
+.stat-chg.up { color: var(--stat-up); }
+.stat-chg.dn { color: var(--stat-dn); }
+.stat-bar {
+  position: absolute; bottom: 0; left: 0;
+  width: 35%; height: 2px;
+  background: var(--accent); opacity: 0.35;
+  border-radius: 0 2px 0 0;
+  transition: width 0.35s var(--ease-expo), opacity 0.2s;
+}
+.stat-card:hover .stat-bar { width: 65%; opacity: 0.8; }
+
+/* ─── CHARTS ────────────────────────────── */
+.charts-grid {
+  display: grid;
+  gap: clamp(0.7rem, 2vw, 1.2rem);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 1024px) { .charts-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.chart-card {
+  position: relative; border-radius: 16px;
+  padding: clamp(1rem, 3vw, 1.4rem);
+  animation: fadeUp 0.6s var(--ease-expo) 0.4s both;
+}
+.chart-ey {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 3px;
+}
+.chart-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1rem, 2.5vw, 1.2rem); font-weight: 700;
+  color: var(--text); margin-bottom: 16px; transition: color 0.4s;
+}
+.chart-wrap { position: relative; width: 100%; height: 210px; }
+@media (min-width: 640px)  { .chart-wrap { height: 250px; } }
+@media (min-width: 1024px) { .chart-wrap { height: 265px; } }
+
+/* ─── TICKER ────────────────────────────── */
+.ticker-wrap {
+  position: fixed; bottom: 0; left: 0; width: 100%;
+  background: var(--accent); overflow: hidden;
+  padding: 7px 0; z-index: 50;
+  transition: background 0.4s;
+}
+.ticker-inner {
+  display: flex; white-space: nowrap;
+  animation: ticker 22s linear infinite;
+}
+.ticker-item {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem; letter-spacing: 0.18em;
+  text-transform: uppercase; padding: 0 30px;
+  color: rgba(255,255,255,0.9);
+}
+.ticker-dot {
+  display: inline-block; width: 4px; height: 4px;
+  background: rgba(255,255,255,0.5); border-radius: 50%;
+  vertical-align: middle; margin: 0 14px;
+}
+@keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+/* ─── ANIMATIONS ────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── LANDSCAPE PHONES ──────────────────── */
+@media (max-height: 500px) and (orientation: landscape) {
+  .stats-grid { grid-template-columns: repeat(4, 1fr); }
+  .charts-grid { grid-template-columns: repeat(2, 1fr); }
+  .chart-wrap { height: 160px; }
+  .page-title { font-size: 1.4rem; }
+  .deco-word  { display: none; }
+}
 </style>
 </head>
 
-<body class="min-h-screen bg-gradient-to-br from-green-400 via-blue-500 to-indigo-600 dark:from-gray-900 dark:via-gray-800 dark:to-black transition duration-500">
+<body>
 
+<!-- Decorative bg words -->
+<div class="deco-bg" aria-hidden="true">
+  <div class="deco-word w1">CLEAN</div>
+  <div class="deco-word w2">Fresh</div>
+</div>
+
+<!-- Bubbles -->
 <div class="bubbles" id="bubbles"></div>
 
-<aside id="sidebar" class="fixed top-0 left-0 h-full w-64 glass p-6 text-white z-40 transform -translate-x-full transition-transform duration-300 flex flex-col justify-between">
+<!-- ══════ SIDEBAR ══════ -->
+<aside id="sidebar">
   <div>
-    <div class="flex items-center justify-between mb-10">
-      <h1 class="text-2xl font-bold">LOUNGE</h1>
-      <button id="closeSidebar" class="p-2 rounded-lg hover:bg-white/20 transition">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.75rem;">
+      <div>
+        <div class="sb-eyebrow">Est. 2024 · Nueva Ecija</div>
+        <div class="sb-name">Laundry <span>Lounge</span></div>
+      </div>
+      <button id="closeSidebar" aria-label="Close sidebar">✕</button>
     </div>
-    <nav class="space-y-3">
-      <a href="{{ url_for('dashboard') }}" class="block px-4 py-3 rounded-xl hover:bg-white/20 transition">Dashboard</a>
-      <a href="{{ url_for('orders') }}" class="block px-4 py-3 rounded-xl hover:bg-white/20 transition">Orders</a>
-      <a href="{{ url_for('customers') }}" class="block px-4 py-3 rounded-xl hover:bg-white/20 transition">Customers</a>
-      <a href="{{ url_for('reports') }}" class="block px-4 py-3 rounded-xl hover:bg-white/20 transition">Reports</a>
-      <a href="{{ url_for('settings') }}" class="block px-4 py-3 rounded-xl hover:bg-white/20 transition">Settings</a>
+    <nav style="display:flex;flex-direction:column;gap:3px;">
+      <a href="{{ url_for('dashboard') }}" class="nav-link active"><span></span>Dashboard</a>
+      <a href="{{ url_for('orders') }}"    class="nav-link"><span></span>Orders</a>
+      <a href="{{ url_for('customers') }}" class="nav-link"><span></span>Customers</a>
+      <a href="{{ url_for('reports') }}"   class="nav-link"><span></span>Reports</a>
+      <a href="{{ url_for('settings') }}"  class="nav-link"><span></span>Activity Logs</a>
     </nav>
   </div>
-  <div class="mt-10 flex flex-col gap-2">
-    <p class="text-sm opacity-80">{{ user }}</p>
-    <p class="text-xs opacity-60">admin@laundry.com</p>
-    <a href="{{ url_for('logout') }}" class="mt-3 block px-4 py-2 rounded-xl bg-red-500 hover:bg-red-400 text-white text-sm text-center transition">Log Out</a>
+  <div class="sb-user">
+    <div class="sb-uname">{{ user }}</div>
+    <div class="sb-uemail">admin@laundry.com</div>
+    <a href="{{ url_for('logout') }}" class="sb-logout">Log Out</a>
   </div>
 </aside>
 
-<div id="overlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-30"></div>
+<!-- Overlay -->
+<div id="overlay"></div>
 
-<div class="relative z-10 p-4 sm:p-6 md:p-8 text-white transition-all duration-300">
+<!-- ══════ MAIN ══════ -->
+<div id="main">
 
-<div class="flex justify-between items-center mb-8">
-<button id="openSidebar" class="p-3 rounded-xl bg-white/20 hover:bg-white/30 transition">☰</button>
-<button onclick="toggleDark()" class="px-5 py-2 rounded-full bg-white/20 hover:bg-white/30 transition">🌙</button>
-</div>
+  <!-- Topbar -->
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
+      <button id="openSidebar" aria-label="Open sidebar">☰</button>
+      <div style="min-width:0;">
+        <h2 class="page-title">Overview <em>Today</em></h2>
+      </div>
+    </div>
+    <button id="themeToggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span id="themeIcon">☀</span>
+      <span id="themeLabel" style="display:none;">Theme</span>
+    </button>
+  </div>
 
-<div class="mb-8">
-<h2 class="text-3xl font-bold">Dashboard Overview</h2>
-<p class="text-white/70 text-sm mt-2">Welcome back! Here's what's happening today.</p>
-</div>
+  <!-- Header -->
+  <div class="page-header">
+    <div class="live-tag">Live Dashboard &nbsp;·&nbsp; Auto-refresh</div>
+    <p class="page-sub">Welcome back! Here's what's happening today at Laundry Lounge.</p>
+  </div>
 
-<!-- Dashboard Stats -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-<div class="glass p-6 rounded-2xl">
-<p class="text-sm opacity-80">Total Revenue</p>
-<h3 id="totalRevenue" class="text-2xl font-bold mt-2">₱0</h3>
-<p class="text-green-300 text-sm mt-1">+0%</p>
-</div>
-<div class="glass p-6 rounded-2xl">
-<p class="text-sm opacity-80">Active Orders</p>
-<h3 id="activeOrders" class="text-2xl font-bold mt-2">0</h3>
-<p class="text-green-300 text-sm mt-1">+0%</p>
-</div>
-<div class="glass p-6 rounded-2xl">
-<p class="text-sm opacity-80">Total Customers</p>
-<h3 id="totalCustomers" class="text-2xl font-bold mt-2">0</h3>
-<p class="text-green-300 text-sm mt-1">+0%</p>
-</div>
-<div class="glass p-6 rounded-2xl">
-<p class="text-sm opacity-80">Pending Orders</p>
-<h3 id="pendingOrders" class="text-2xl font-bold mt-2">0</h3>
-<p class="text-red-300 text-sm mt-1">-0%</p>
-</div>
-</div>
+  <!-- Stats -->
+  <div class="stats-grid" style="margin-bottom:0;">
 
-<!-- Charts -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-<div class="glass p-6 rounded-2xl">
-<h3 class="mb-4 font-semibold">Revenue Overview</h3>
-<canvas id="revenueChart"></canvas>
-</div>
-<div class="glass p-6 rounded-2xl">
-<h3 class="mb-4 font-semibold">Order Statistics</h3>
-<canvas id="ordersChart"></canvas>
-</div>
-</div>
+    <div class="glass stat-card">
+      <div class="corner-acc"></div>
+      <p class="stat-ey">Total Revenue</p>
+      <div id="totalRevenue" class="stat-val">₱0</div>
+      <p class="stat-chg up">↑ This month</p>
+      <div class="stat-bar"></div>
+    </div>
+
+    <div class="glass stat-card">
+      <div class="corner-acc"></div>
+      <p class="stat-ey">Active Orders</p>
+      <div id="activeOrders" class="stat-val">0</div>
+      <p class="stat-chg up">↑ In progress</p>
+      <div class="stat-bar"></div>
+    </div>
+
+    <div class="glass stat-card">
+      <div class="corner-acc"></div>
+      <p class="stat-ey">Total Customers</p>
+      <div id="totalCustomers" class="stat-val">0</div>
+      <p class="stat-chg up">↑ Unique clients</p>
+      <div class="stat-bar"></div>
+    </div>
+
+    <div class="glass stat-card">
+      <div class="corner-acc"></div>
+      <p class="stat-ey">Pending Orders</p>
+      <div id="pendingOrders" class="stat-val">0</div>
+      <p class="stat-chg dn">↓ Needs attention</p>
+      <div class="stat-bar"></div>
+    </div>
+
+  </div>
+
+  <!-- Divider -->
+  <div class="divider">
+    <div class="rule"></div>
+    <div class="cross"></div>
+    <div class="rule"></div>
+  </div>
+
+  <!-- Charts -->
+  <div class="charts-grid">
+
+    <div class="glass chart-card">
+      <div class="corner-acc"></div>
+      <p class="chart-ey">Analytics</p>
+      <h3 class="chart-title">Revenue Overview</h3>
+      <div class="chart-wrap"><canvas id="revenueChart"></canvas></div>
+    </div>
+
+    <div class="glass chart-card">
+      <div class="corner-acc"></div>
+      <p class="chart-ey">Analytics</p>
+      <h3 class="chart-title">Order Statistics</h3>
+      <div class="chart-wrap"><canvas id="ordersChart"></canvas></div>
+    </div>
+
+  </div>
+
+</div><!-- /main -->
+
+<!-- Ticker -->
+<div class="ticker-wrap" aria-hidden="true">
+  <div class="ticker-inner">
+    <span class="ticker-item">Fast Pickup</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Order Tracking</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Premium Care</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Same-Day Service</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Fresh Every Time</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Laundry Lounge</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Fast Pickup</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Order Tracking</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Premium Care</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Same-Day Service</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Fresh Every Time</span><span class="ticker-dot"></span>
+    <span class="ticker-item">Laundry Lounge</span><span class="ticker-dot"></span>
+  </div>
 </div>
 
 <script>
-// ------------------ Sidebar ------------------
+/* ─── Theme (matches login page exactly) ─── */
+function toggleTheme() {
+  const html  = document.documentElement;
+  const isDark = html.dataset.theme === 'dark';
+  html.dataset.theme = isDark ? 'light' : 'dark';
+  document.getElementById('themeIcon').textContent = isDark ? '☀' : '☽';
+  localStorage.setItem('ll-theme', html.dataset.theme);
+  rebuildCharts();
+}
+(function() {
+  const saved = localStorage.getItem('ll-theme');
+  if (saved) {
+    document.documentElement.dataset.theme = saved;
+    const icon = document.getElementById('themeIcon');
+    if (icon) icon.textContent = saved === 'dark' ? '☽' : '☀';
+  }
+})();
+
+/* ─── Sidebar ─────────────────────────────── */
 const sidebar = document.getElementById('sidebar');
 const overlay = document.getElementById('overlay');
-document.getElementById('openSidebar').onclick = () => {
-    sidebar.classList.remove('-translate-x-full'); 
-    overlay.classList.remove('hidden');
-};
-document.getElementById('closeSidebar').onclick = () => {
-    sidebar.classList.add('-translate-x-full'); 
-    overlay.classList.add('hidden');
-};
-overlay.onclick = () => {
-    sidebar.classList.add('-translate-x-full'); 
-    overlay.classList.add('hidden');
-};
+const mainEl  = document.getElementById('main');
 
-// ------------------ Dark Mode ------------------
-function toggleDark() {
-    document.documentElement.classList.toggle('dark'); 
-    localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+let sidebarOpen = false;
+
+function openSidebar() {
+  sidebarOpen = true;
+  sidebar.classList.add('open');
+  if (window.innerWidth >= 1024) {
+    mainEl.classList.add('sidebar-open');
+    overlay.classList.remove('visible');
+  } else {
+    overlay.classList.add('visible');
+  }
 }
-if(localStorage.getItem('theme') === 'dark') {
-    document.documentElement.classList.add('dark');
+function closeSidebar() {
+  sidebarOpen = false;
+  sidebar.classList.remove('open');
+  overlay.classList.remove('visible');
+  mainEl.classList.remove('sidebar-open');
+}
+function toggleSidebar() {
+  sidebarOpen ? closeSidebar() : openSidebar();
 }
 
-// ------------------ Bubble Generator ------------------
-function createBubbles(count=30){
-    const container = document.getElementById('bubbles');
-    for(let i=0;i<count;i++){
-        const bubble = document.createElement('div');
-        bubble.classList.add('bubble');
-        bubble.style.width = bubble.style.height = `${Math.random()*80 + 20}px`;
-        bubble.style.left = `${Math.random()*100}%`;
-        bubble.style.animationDuration = `${Math.random()*10 + 5}s`;
-        bubble.style.animationDelay = `${Math.random()*5}s`;
-        container.appendChild(bubble);
+document.getElementById('openSidebar').addEventListener('click', toggleSidebar);
+document.getElementById('closeSidebar').addEventListener('click', closeSidebar);
+overlay.addEventListener('click', closeSidebar);
+
+// On desktop: open by default. On mobile: closed by default.
+// When resizing from mobile→desktop, reopen if it was closed by resize.
+let lastWasDesktop = window.innerWidth >= 1024;
+function handleResize() {
+  const isDesktop = window.innerWidth >= 1024;
+  if (isDesktop && !lastWasDesktop) {
+    // Switched to desktop: open sidebar
+    openSidebar();
+  } else if (!isDesktop && lastWasDesktop) {
+    // Switched to mobile: close sidebar
+    closeSidebar();
+  }
+  lastWasDesktop = isDesktop;
+  // Always hide overlay on desktop
+  if (isDesktop) overlay.classList.remove('visible');
+}
+window.addEventListener('resize', handleResize);
+
+// Initial state
+if (window.innerWidth >= 1024) openSidebar();
+else closeSidebar();
+
+/* ─── Show theme label on wider screens ───── */
+const themeLabel = document.getElementById('themeLabel');
+function updateThemeLabel() {
+  themeLabel.style.display = window.innerWidth >= 400 ? 'inline' : 'none';
+}
+window.addEventListener('resize', updateThemeLabel);
+updateThemeLabel();
+
+/* ─── Bubbles ─────────────────────────────── */
+(function() {
+  const c = document.getElementById('bubbles');
+  for (let i = 0; i < 20; i++) {
+    const b = document.createElement('div');
+    b.classList.add('bubble');
+    const s = Math.random() * 65 + 12;
+    b.style.cssText = `width:${s}px;height:${s}px;left:${Math.random()*100}%;animation-duration:${Math.random()*12+6}s;animation-delay:${Math.random()*7}s;`;
+    c.appendChild(b);
+  }
+})();
+
+/* ─── Charts ──────────────────────────────── */
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+let revenueChart, ordersChart, lastOrders = [];
+
+function getCSSVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function buildCharts(orders) {
+  lastOrders = orders;
+  const accent    = getCSSVar('--accent');
+  const text      = getCSSVar('--text');
+  const gridColor = getCSSVar('--grid-color');
+  const tickColor = getCSSVar('--tick-color');
+  const fillColor = getCSSVar('--chart-fill');
+  const barColor  = getCSSVar('--chart-bar');
+  const barHover  = getCSSVar('--chart-barh');
+
+  const labels = [...new Set(orders.map(o => o.date))].sort();
+  const revData = labels.map(d => orders.filter(o => o.date === d).reduce((s, o) => s + parseFloat(o.amount || 0), 0));
+  const ordData = labels.map(d => orders.filter(o => o.date === d).length);
+
+  const scales = {
+    x: { ticks: { color: tickColor, font: { size: 11 } }, grid: { color: gridColor } },
+    y: { ticks: { color: tickColor, font: { size: 11 } }, grid: { color: gridColor } }
+  };
+  const legend = { display: true, labels: { color: text, font: { size: 11 }, boxWidth: 12 } };
+
+  if (revenueChart) revenueChart.destroy();
+  if (ordersChart)  ordersChart.destroy();
+
+  revenueChart = new Chart(document.getElementById('revenueChart'), {
+    type: 'line',
+    data: { labels, datasets: [{
+      label: 'Revenue (₱)', data: revData,
+      borderColor: accent, backgroundColor: fillColor,
+      fill: true, tension: 0.4,
+      pointBackgroundColor: accent, pointRadius: 4, pointHoverRadius: 6
+    }]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend, tooltip: { callbacks: { label: c => `₱${c.parsed.y.toFixed(2)}` } } },
+      scales
     }
-}
-createBubbles();
+  });
 
+  ordersChart = new Chart(document.getElementById('ordersChart'), {
+    type: 'bar',
+    data: { labels, datasets: [{
+      label: 'Orders', data: ordData,
+      backgroundColor: barColor,
+      hoverBackgroundColor: barHover,
+      borderRadius: 6
+    }]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend },
+      scales
+    }
+  });
+}
+
+function rebuildCharts() {
+  if (lastOrders.length) buildCharts(lastOrders);
+}
+
+/* ─── Data fetch ──────────────────────────── */
 async function fetchDashboardData() {
-    try {
-        const response = await fetch("/api/orders"); // GET /api/orders from Flask
-        if (!response.ok) throw new Error("Failed to fetch orders");
-        const orders = await response.json();
+  try {
+    const res = await fetch("/api/orders");
+    if (!res.ok) throw new Error("Fetch failed");
+    const orders = await res.json();
 
-        // Calculate stats
-        const totalRevenue = orders.reduce((sum, o) => sum + parseFloat(o.amount || 0), 0);
-        const activeOrders = orders.filter(o => o.status !== 'Completed').length;
-        const pendingOrders = orders.filter(o => ["New","Washing","Drying","Folding"].includes(o.status)).length;
-        const totalCustomers = [...new Set(orders.map(o => o.name))].length;
+    const rev  = orders.reduce((s, o) => s + parseFloat(o.amount || 0), 0);
+    const act  = orders.filter(o => o.status !== 'Completed').length;
+    const pend = orders.filter(o => ["New","Washing","Drying","Folding"].includes(o.status)).length;
+    const cust = [...new Set(orders.map(o => o.name))].length;
 
-        // Update DOM
-        document.getElementById('totalRevenue').innerText = `₱${totalRevenue.toFixed(2)}`;
-        document.getElementById('activeOrders').innerText = activeOrders;
-        document.getElementById('pendingOrders').innerText = pendingOrders;
-        document.getElementById('totalCustomers').innerText = totalCustomers;
+    document.getElementById('totalRevenue').textContent   = `₱${rev.toFixed(2)}`;
+    document.getElementById('activeOrders').textContent   = act;
+    document.getElementById('pendingOrders').textContent  = pend;
+    document.getElementById('totalCustomers').textContent = cust;
 
-        // Update charts    
-        fetchReportData(orders);
-
-    } catch (err) {
-        console.error(err);
-    }
+    buildCharts(orders);
+  } catch (e) { console.error('Dashboard error:', e); }
 }
 
-// ------------------ Charts ------------------
-let revenueChart, ordersChart;
-
-function fetchReportData(orders) {
-
-    // ✅ FIX: use "date" instead of "order_date"
-    const labels = [...new Set(orders.map(o => o.date))].sort();
-
-    const revenueData = labels.map(date =>
-        orders
-            .filter(o => o.date === date)
-            .reduce((sum, o) => sum + parseFloat(o.amount || 0), 0)
-    );
-
-    const ordersData = labels.map(date =>
-        orders.filter(o => o.date === date).length
-    );
-
-    const ctxRevenue = document.getElementById('revenueChart').getContext('2d');
-    const ctxOrders = document.getElementById('ordersChart').getContext('2d');
-
-    if (revenueChart) revenueChart.destroy();
-    if (ordersChart) ordersChart.destroy();
-
-    // ✅ Revenue Chart (Line)
-    revenueChart = new Chart(ctxRevenue, {
-        type: 'line',
-        data: {
-            labels,
-            datasets: [{
-                label: "Revenue",
-                data: revenueData,
-                borderColor: '#fff',
-                backgroundColor: 'rgba(255,255,255,0.2)',
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: {
-            plugins: {
-                legend: {
-                    display: true, // ✅ show indicator
-                    labels: { color: '#fff' }
-                }
-            },
-            scales: {
-                x: { ticks: { color: '#fff' } },
-                y: { ticks: { color: '#fff' } }
-            }
-        }
-    });
-
-    // ✅ Orders Chart (Bar)
-    ordersChart = new Chart(ctxOrders, {
-        type: 'bar',
-        data: {
-            labels,
-            datasets: [{
-                label: "Orders",
-                data: ordersData,
-                backgroundColor: 'rgba(255,255,255,0.6)'
-            }]
-        },
-        options: {
-            plugins: {
-                legend: {
-                    display: true, // ✅ show indicator
-                    labels: { color: '#fff' }
-                }
-            },
-            scales: {
-                x: { ticks: { color: '#fff' } },
-                y: { ticks: { color: '#fff' } }
-            }
-        }
-    });
-}
-
-// ------------------ Initialize ------------------
 fetchDashboardData();
 setInterval(fetchDashboardData, 30000);
-// ------------------ Auto-refresh every 30 seconds ------------------
-setInterval(() => {
-    fetchDashboardData();
-    fetchReportData();
-}, 30000);
-
-// ------------------ Cross-tab Updates ------------------
-window.addEventListener('storage', (event) => {
-    if(event.key === 'orders') {
-        fetchDashboardData();
-        fetchReportData();
-    }
-});
+window.addEventListener('storage', e => { if (e.key === 'orders') fetchDashboardData(); });
 </script>
 </body>
 </html>
