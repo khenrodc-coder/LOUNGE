@@ -4,11 +4,37 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Track Your Order — Laundry Lounge</title>
-
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
+
+.logo-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.logo-img {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+}
+
+.logo-img {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 6px var(--accent-glow));
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.logo-img:hover {
+  transform: scale(1.08);
+  filter: drop-shadow(0 0 12px var(--accent));
+}
 /* ─── RESET ─────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -449,7 +475,10 @@ footer {
 <!-- ══════ HEADER ══════ -->
 <header>
   <div class="header-eyebrow">Est. 2024 · Nueva Ecija</div>
+  <div class="logo-row">
+  <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Laundry Lounge Logo" class="logo-img">
   <div class="header-logo">Laundry <span>Lounge</span></div>
+</div>
   <div class="header-tagline">From Stains to Sparkle</div>
   <div class="wash-anim" aria-hidden="true">
     <div class="wash-ring"></div>

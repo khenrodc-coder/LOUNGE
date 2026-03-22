@@ -3,10 +3,57 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Laundry Lounge — Clean Station</title>
+<title>Laundry Lounge — Login Page</title>
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 
 <style>
+
+.logo-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-img {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+}
+
+.logo-img {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+
+  /* ✨ GLOW EFFECT */
+  filter: drop-shadow(0 0 8px rgba(196, 79, 31, 0.4))
+          drop-shadow(0 0 18px rgba(196, 79, 31, 0.25));
+
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.logo-img:hover {
+  transform: scale(1.08);
+
+  filter: drop-shadow(0 0 12px rgba(196, 79, 31, 0.7))
+          drop-shadow(0 0 28px rgba(196, 79, 31, 0.5));
+}
+
+@keyframes logoGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(196, 79, 31, 0.4))
+            drop-shadow(0 0 18px rgba(196, 79, 31, 0.25));
+  }
+  50% {
+    filter: drop-shadow(0 0 14px rgba(196, 79, 31, 0.7))
+            drop-shadow(0 0 30px rgba(196, 79, 31, 0.45));
+  }
+}
+
+.logo-img {
+  animation: logoGlow 3s ease-in-out infinite;
+}
 
 @keyframes floatChar {
   0%, 100% { transform: translateY(0); }
@@ -892,10 +939,22 @@ body {
   <!-- ══════ LEFT — Editorial ══════ -->
   <div class="side-left">
 
-    <div class="logo-block fade-in">
-      <span class="logo-eyebrow">Est. 2024 · Nueva Ecija</span>
-      <div class="logo-name">Laundry <span>Lounge</span></div>
-    </div>
+    <div class="logo-wrapper fade-in">
+
+       <img 
+    src="{{ url_for('static', filename='img/logo.png') }}" 
+    alt="Laundry Logo" 
+    class="logo-img"
+  >
+
+  <!-- TEXT BLOCK -->
+  <div class="logo-block">
+    <span class="logo-eyebrow">Est. 2024 · Nueva Ecija</span>
+    <div class="logo-name">Laundry <span>Lounge</span></div>
+  </div>
+
+</div>
+
 
     <div class="editorial-block">
       <div class="edition-tag">Now Serving &nbsp;·&nbsp; Open Daily</div>
